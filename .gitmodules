@@ -1,0 +1,3 @@
+[submodule "scenecot"]
+	path = scenecot
+	url = https://github.com/SceneCOT/scenecot.git
