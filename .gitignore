@@ -1,0 +1,9 @@
+model_assets/
+data_assets/
+experiments/
+*.pth
+*.bin
+*.safetensors
+*.zip
+__pycache__/
+eval_output_*.txt
