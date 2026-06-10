@@ -1,0 +1,9 @@
+# Requirements for diagnose_spatial.py
+#
+# None — the script only uses the Python standard library
+# (argparse, ast, json, os, re, sys, textwrap) and runs on Python 3.7+.
+# It intentionally avoids importing the scenecot package (torch, etc.);
+# the CoT token map is rebuilt by reading scenecot/data/data_utils.py as text.
+#
+# For training/evaluating the model itself, use scenecot/requirements.txt instead.
+
