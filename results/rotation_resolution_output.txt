@@ -1,0 +1,136 @@
+Simulation of build_obj_prob_loc_txt coordinate truncation (f'{coord:.1f}')
+Replicates: rotation into agent frame -> per-axis rounding to 0.1 m (10 cm).
+
+==============================================================================
+SCENARIO 1: cup on a small table (7 cm planar separation)
+==============================================================================
+agent position (+0.000, +0.000, +1.000)  orientation (+1.000, +0.000, +0.000)
+
+  object      true egocentric (m)         string fed to LLM (:.1f)
+  table       (+2.030, +0.510, -1.400)    "2.0,0.5,-1.4,0.1,0.1,0.1"
+  cup         (+2.080, +0.560, -1.050)    "2.1,0.6,-1.1,0.1,0.1,0.1"
+
+  true   cup-table offset: dx=+0.050 dy=+0.050 dz=+0.350  (planar dist   7.1 cm)
+  in-str cup-table offset: dx=+0.100 dy=+0.100 dz=+0.300  (planar dist  14.1 cm)
+  >> axis x: offset distorted +5.0 -> +10.0 cm (+100% error)
+  >> axis y: offset distorted +5.0 -> +10.0 cm (+100% error)
+  >> planar distance error +100% (7.1 -> 14.1 cm)
+
+==============================================================================
+SCENARIO 2: two chairs crammed together (12 cm apart, straddling agent midline)
+==============================================================================
+agent position (+0.000, +0.000, +0.000)  orientation (+1.000, +0.000, +0.000)
+
+  object      true egocentric (m)         string fed to LLM (:.1f)
+  chair_L     (+1.500, +0.040, +0.450)    "1.5,0.0,0.5,0.1,0.1,0.1"
+  chair_R     (+1.500, -0.080, +0.450)    "1.5,-0.1,0.5,0.1,0.1,0.1"
+
+  true   chair_R-chair_L offset: dx=+0.000 dy=-0.120 dz=+0.000  (planar dist  12.0 cm)
+  in-str chair_R-chair_L offset: dx=+0.000 dy=-0.100 dz=+0.000  (planar dist  10.0 cm)
+  >> pair survives truncation at this orientation
+
+==============================================================================
+SCENARIO 3: book and lamp 18 cm apart, agent rotated 90 deg
+==============================================================================
+agent position (+0.000, +0.000, +0.000)  orientation (+0.000, +1.000, +0.000)
+
+  object      true egocentric (m)         string fed to LLM (:.1f)
+  book        (+2.000, -0.260, +0.720)    "2.0,-0.3,0.7,0.1,0.1,0.1"
+  lamp        (+2.000, -0.440, +0.720)    "2.0,-0.4,0.7,0.1,0.1,0.1"
+
+  true   lamp-book offset: dx=+0.000 dy=-0.180 dz=+0.000  (planar dist  18.0 cm)
+  in-str lamp-book offset: dx=+0.000 dy=-0.100 dz=+0.000  (planar dist  10.0 cm)
+  >> axis y: offset distorted -18.0 -> -10.0 cm (-44% error)
+  >> planar distance error -44% (18.0 -> 10.0 cm)
+
+==============================================================================
+SCENARIO 4: orientation sweep -- same two objects ~6 cm apart
+==============================================================================
+  mug_A world (1.75, 1.18)   mug_B world (1.8, 1.21)   true planar gap 5.8 cm
+
+   agent yaw  mug_A string                    mug_B string                    LLM-visible gap
+         0°  1.8,1.2,0.7,0.1,0.1,0.1         1.8,1.2,0.7,0.1,0.1,0.1           0.0 cm  << COLLAPSED
+        15°  2.0,0.7,0.7,0.1,0.1,0.1         2.1,0.7,0.7,0.1,0.1,0.1          10.0 cm  << +4.2 cm error
+        30°  2.1,0.1,0.7,0.1,0.1,0.1         2.2,0.1,0.7,0.1,0.1,0.1          10.0 cm  << +4.2 cm error
+        45°  2.1,-0.4,0.7,0.1,0.1,0.1        2.1,-0.4,0.7,0.1,0.1,0.1          0.0 cm  << COLLAPSED
+        60°  1.9,-0.9,0.7,0.1,0.1,0.1        1.9,-1.0,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+        75°  1.6,-1.4,0.7,0.1,0.1,0.1        1.6,-1.4,0.7,0.1,0.1,0.1          0.0 cm  << COLLAPSED
+        90°  1.2,-1.8,0.7,0.1,0.1,0.1        1.2,-1.8,0.7,0.1,0.1,0.1          0.0 cm  << COLLAPSED
+       105°  0.7,-2.0,0.7,0.1,0.1,0.1        0.7,-2.1,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       120°  0.1,-2.1,0.7,0.1,0.1,0.1        0.1,-2.2,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       135°  -0.4,-2.1,0.7,0.1,0.1,0.1       -0.4,-2.1,0.7,0.1,0.1,0.1         0.0 cm  << COLLAPSED
+       150°  -0.9,-1.9,0.7,0.1,0.1,0.1       -1.0,-1.9,0.7,0.1,0.1,0.1        10.0 cm  << +4.2 cm error
+       165°  -1.4,-1.6,0.7,0.1,0.1,0.1       -1.4,-1.6,0.7,0.1,0.1,0.1         0.0 cm  << COLLAPSED
+       180°  -1.7,-1.2,0.7,0.1,0.1,0.1       -1.8,-1.2,0.7,0.1,0.1,0.1        10.0 cm  << +4.2 cm error
+       195°  -2.0,-0.7,0.7,0.1,0.1,0.1       -2.1,-0.7,0.7,0.1,0.1,0.1        10.0 cm  << +4.2 cm error
+       210°  -2.1,-0.1,0.7,0.1,0.1,0.1       -2.2,-0.1,0.7,0.1,0.1,0.1        10.0 cm  << +4.2 cm error
+       225°  -2.1,0.4,0.7,0.1,0.1,0.1        -2.1,0.4,0.7,0.1,0.1,0.1          0.0 cm  << COLLAPSED
+       240°  -1.9,0.9,0.7,0.1,0.1,0.1        -1.9,1.0,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       255°  -1.6,1.4,0.7,0.1,0.1,0.1        -1.6,1.4,0.7,0.1,0.1,0.1          0.0 cm  << COLLAPSED
+       270°  -1.2,1.7,0.7,0.1,0.1,0.1        -1.2,1.8,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       285°  -0.7,2.0,0.7,0.1,0.1,0.1        -0.7,2.1,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       300°  -0.1,2.1,0.7,0.1,0.1,0.1        -0.1,2.2,0.7,0.1,0.1,0.1         10.0 cm  << +4.2 cm error
+       315°  0.4,2.1,0.7,0.1,0.1,0.1         0.4,2.1,0.7,0.1,0.1,0.1           0.0 cm  << COLLAPSED
+       330°  0.9,1.9,0.7,0.1,0.1,0.1         1.0,1.9,0.7,0.1,0.1,0.1          10.0 cm  << +4.2 cm error
+       345°  1.4,1.6,0.7,0.1,0.1,0.1         1.4,1.6,0.7,0.1,0.1,0.1           0.0 cm  << COLLAPSED
+
+  >> identical strings (objects indistinguishable) at 10/24 orientations: [0, 45, 75, 90, 135, 165, 225, 255, 315, 345]
+  >> gap distorted by >25% at 14/24 orientations: [15, 30, 60, 105, 120, 150, 180, 195, 210, 240, 270, 285, 300, 330]
+
+==============================================================================
+SCENARIO 5: polar (coord_type='polar') -- distance quantization
+==============================================================================
+  bottle polar string: "0.0, 2.0"
+  glass  polar string: "1.8, 2.0"
+  true planar gap: 10.0 cm
+  >> distances 2.04 m and 1.96 m both serialize to "2.0";
+     only a 1.8-degree bearing difference remains to separate two distinct objects.
+
+==============================================================================
+SUMMARY: why ':.1f' truncation breaks spatial-relationship evaluation
+==============================================================================
+
+1. QUANTIZATION FLOOR. f"{coord:.1f}" on meter-valued coordinates snaps every
+   axis to a 10 cm grid. Any pair of objects whose egocentric coordinates fall
+   in the same grid cell (anything closer than ~14 cm diagonally, and up to
+   <10 cm per axis) can serialize to IDENTICAL strings. The LLM decoder
+   receives "cup: 2.1,0.6,...  table: 2.1,0.6,..." -- it has literally zero
+   signal that the cup is to the right of / in front of / on the table.
+   Any 'which is closer / what is left of X' question becomes a coin flip.
+
+2. SIGN FLIPS AT THE MIDLINE. An object 4 cm left of the agent axis
+   (y=+0.04) prints as "0.0" while one 8 cm right (y=-0.08) prints as "-0.1".
+   A 12 cm true left/right split becomes "centered vs right", or with slightly
+   different values flips the apparent side entirely. The decoder then asserts
+   the wrong 'left of'/'right of' relation with full confidence, which is
+   exactly the failure mode graded by spatial-relationship benchmarks.
+
+3. ERROR AMPLIFICATION NEAR BIN EDGES. Independent rounding of two endpoints
+   adds up to +/-0.05 m of error EACH, so a true 18 cm gap can print as 30 cm
+   (+67%) or a 14 cm gap as 0 cm (-100%). Relative magnitude judgments
+   ("closest to the window", "between the chairs") are computed by the LLM
+   from these strings, so the ranking of near-tied candidates is corrupted.
+
+4. ORIENTATION-DEPENDENT NONDETERMINISM. The rotation_matrix is applied
+   BEFORE truncation, so where coordinates land on the 10 cm grid depends on
+   the agent's yaw. The sweep above shows the same physical pair collapsing
+   at some viewing angles and surviving at others: the spatial relation the
+   decoder is asked to reason about changes with camera pose even though the
+   scene is static. Evaluation results therefore become noisy and
+   irreproducible across episodes/viewpoints.
+
+5. POLAR MODE IS NO SAFER. ":.1f" on distance is again a 10 cm bin, and
+   ":.1f" on bearing leaves sub-degree differences as the only separator for
+   proximate objects -- e.g. two objects 10 cm apart share the distance "2.0"
+   and differ by ~1.8 degrees of bearing.
+
+NET EFFECT: inside <obj_loc_prob>...</obj_loc_prob>, proximate objects (cups
+on tables, paired chairs, clustered desk items) are presented to the decoder
+as co-located or mis-ordered. When the chain-of-thought step asks the LLM to
+ground "the chair on the left" or "the cup on the table", the textual scene
+representation no longer encodes that relation, so the decoder either guesses
+or hallucinates it -- a deterministic, input-side cause of spatial-relationship
+evaluation failures that no amount of LLM capability can recover, because the
+information was destroyed before tokenization. Using ':.2f' (1 cm grid) or
+object-relative offsets would preserve it at negligible token cost.
+
