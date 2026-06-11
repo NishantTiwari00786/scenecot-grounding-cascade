@@ -1,0 +1,85 @@
+Analyzing 229 questions of types ['counting', 'existence']
+Grounding threshold: 0.5
+
+==============================================================
+GROUNDING ERROR CASCADE - CROSS-TABULATION
+==============================================================
+Category                             Count      % eval
+--------------------------------------------------------------
+Right grounding + Right answer          27       14.2%
+Wrong grounding + Wrong answer (CASCADE)      76       40.0%
+Wrong grounding + Right answer (LUCKY)      72       37.9%
+Right grounding + Wrong answer (REASONING)      15        7.9%
+Unevaluable (no GT grounding)           39
+--------------------------------------------------------------
+TOTAL evaluable                        190
+
+==============================================================
+KEY FINDINGS
+==============================================================
+
+Of 91 WRONG answers:
+  76 (83.5%) trace to WRONG GROUNDING (cascade)
+  15 (16.5%) had correct grounding but wrong reasoning
+
+Lucky guesses (wrong grounding, right answer): 72 (37.9% of evaluable)
+  -> inflate accuracy without true grounding
+     = the grounding-QA coherence problem
+
+==============================================================
+TRACED EXAMPLES: CASCADE (wrong grounding -> wrong answer)
+==============================================================
+
+[existence] ...indow for light control and privacy. To your left, near you, there's an empty brown paper bag. Is there a book at your 5 o'clock? ASSISTANT:
+  Model grounded: ['boxes']
+  Should ground:  ['book']
+  Answered 'no' (correct: 'yes')
+
+[existence] ...black office chair in use at your 3 o'clock, and a wall at your 4 o'clock. Is there a cup to the left of the shelf on your right? ASSISTANT:
+  Model grounded: ['bookshelves', 'stacks of cups']
+  Should ground:  ['cup']
+  Answered 'no' (correct: 'yes')
+
+[existence] ...SER: A wall is at your 6 o'clock direction. There is a board in your 11 o'clock direction. Is there a wall near you on your back? ASSISTANT:
+  Model grounded: []
+  Should ground:  ['wall']
+  Answered 'no' (correct: 'yes')
+
+[existence] ...owl shape and smooth ceramic texture at your 5 o'clock. There is a bottle at your 5 o'clock. Is there a mirror at your 5 o'clock? ASSISTANT:
+  Model grounded: ['stick']
+  Should ground:  ['mirror']
+  Answered 'no' (correct: 'yes')
+
+[existence] ... is a turquoise table with a smooth texture and a four-legged structure in your 6 o'clock direction. Is there a sink in the room? ASSISTANT:
+  Model grounded: []
+  Should ground:  ['sink']
+  Answered 'no' (correct: 'yes')
+
+==============================================================
+TRACED EXAMPLES: LUCKY GUESSES (wrong grounding -> right answer)
+==============================================================
+
+[existence] ...At your 2 o'clock, there is a white lamp base and a multicolor book. You are climbing the shelf. Is there a picture on your left? ASSISTANT:
+  Model grounded: ['pictures']
+  Should ground:  ['picture']
+  Answered 'yes' (matched 'yes')
+
+[existence] ...d you, there's a transparent window window with a white overcast. You are sitting on the chair. Is the picture mounted on a wall? ASSISTANT:
+  Model grounded: ['pictures', 'window']
+  Should ground:  ['picture', 'pillow']
+  Answered 'yes' (matched 'yes')
+
+[existence] ... a middle distance, there's a silver and black trash bin for waste disposal. Is there any object made of glass at your 2 o'clock? ASSISTANT:
+  Model grounded: []
+  Should ground:  ['mirror']
+  Answered 'yes' (matched 'yes')
+
+[existence] ...k backpack. Behind you, there's a black plastic trash can and a light brown door. Can You find a backpack near you on your right? ASSISTANT:
+  Model grounded: []
+  Should ground:  ['backpack']
+  Answered 'yes' (matched 'yes')
+
+[existence] ... near you, there's a gray fabric and wood/metal chair with a box-like shape and textured surface. Is there a picture in the room? ASSISTANT:
+  Model grounded: ['pictures', 'window']
+  Should ground:  ['picture']
+  Answered 'yes' (matched 'yes')
