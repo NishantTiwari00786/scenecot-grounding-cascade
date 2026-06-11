@@ -345,9 +345,7 @@ run_eval.sh runs the full SceneCOT evaluation on one GPU and writes the same
 prediction files used above.
 
 ---
-
-## Repository Structure
-
+```text
 EE243_Scenecot_Project/
 ├── scenecot/                           # Original SceneCOT codebase (git submodule)
 ├── experiments/
@@ -367,6 +365,8 @@ EE243_Scenecot_Project/
 ├── run_eval_spatial.sh                 # Batch script for the spatial evaluation
 ├── eval_output_107559.txt              # Full baseline evaluation log
 └── BASELINE_RESULTS.md                 # Baseline numbers and file location
+
+
 
 ## Acknowledgements
 
