@@ -346,25 +346,27 @@ prediction files used above.
 
 ---
 
-## Repository structure
+## Repository Structure
 
 EE243_Scenecot_Project/
-scenecot/                          original SceneCOT codebase (git submodule)
-experiments/
-SceneCOT_msqa_beacon3d_test_moe/
-eval_results/
-QACOTScanNetMSR3D/results.json    MSQA predictions, 826 questions
-QACOTScanNetGQA3D/results.json    GQA3D and Beacon3D predictions
-results/                           spatial experiment outputs (Option A)
-grounding_cascade_analysis.py      our Option B analysis script
-make_cascade_chart.py              makes the results chart
-diagnose_spatial.py                Option A, spatial failure parsing
-generate_spatial_test_slice.py     Option A, spatial stress test slice
-test_rotation_resolution.py        Option A, rotation resolution test
-run_eval.sh                        batch script for the baseline evaluation
-run_eval_spatial.sh                batch script for the spatial evaluation
-eval_output_107559.txt             full baseline evaluation log
-BASELINE_RESULTS.md                baseline numbers and file location
+├── scenecot/                           # Original SceneCOT codebase (git submodule)
+├── experiments/
+│   └── SceneCOT_msqa_beacon3d_test_moe/
+│       ├── eval_results/
+│       │   ├── QACOTScanNetMSR3D/
+│       │   │   └── results.json        # MSQA predictions, 826 questions
+│       │   └── QACOTScanNetGQA3D/
+│       │       └── results.json        # GQA3D and Beacon3D predictions
+│       └── results/                    # Spatial experiment outputs (Option A)
+├── grounding_cascade_analysis.py       # Our Option B analysis script
+├── make_cascade_chart.py               # Makes the results chart
+├── diagnose_spatial.py                 # Option A, spatial failure parsing
+├── generate_spatial_test_slice.py      # Option A, spatial stress test slice
+├── test_rotation_resolution.py         # Option A, rotation resolution test
+├── run_eval.sh                         # Batch script for the baseline evaluation
+├── run_eval_spatial.sh                 # Batch script for the spatial evaluation
+├── eval_output_107559.txt              # Full baseline evaluation log
+└── BASELINE_RESULTS.md                 # Baseline numbers and file location
 
 ## Acknowledgements
 
