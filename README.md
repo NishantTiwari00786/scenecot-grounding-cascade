@@ -197,7 +197,6 @@ The script that does this is grounding_cascade_analysis.py.
 The chart below shows the four groups for counting and existence questions. The
 exact numbers follow underneath.
 
-![Grounding cascade results](cascade_chart.png)
 
 | Category | Counting (n=132) | Existence (n=58) |
 |----------|-----------------:|-----------------:|
