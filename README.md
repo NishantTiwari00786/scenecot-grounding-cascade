@@ -28,7 +28,7 @@ also found that the model often gets the right answer while looking at the wrong
 object, which means a lot of its accuracy is not actually earned through correct
 grounding.
 
-The course asked for depth over breadth, so we focused on one clear bottleneck
+The course asked for depth over breadth, so we focused on two clear bottlenecks
 and studied it carefully with both success and failure cases instead of touching
 many topics shallowly.
 
@@ -39,12 +39,12 @@ many topics shallowly.
 1. [Research lineage](#research-lineage)
 2. [The frontier paper: SceneCOT](#the-frontier-paper-scenecot)
 3. [Part 1: Reproducing the baseline](#part-1-reproducing-the-baseline)
-4. [Part 2: Our experiment (Option B, grounding cascade)](#part-2-our-experiment-option-b-grounding-cascade)
+4. [Part 2: Our experiment (Option B, grounding cascade)](#part-2-grounding-cascade)
 5. [Results](#results)
 6. [Success cases](#success-cases)
 7. [Failure cases](#failure-cases)
 8. [Limitations of our analysis](#limitations-of-our-analysis)
-9. [Part 3: Spatial reasoning experiment (Option A)](#part-3-spatial-reasoning-experiment-option-a)
+9. [Part 3: Spatial reasoning experiment (Option A)](#part-3-spatial-reasoning-experiment)
 10. [How to reproduce](#how-to-reproduce)
 11. [Repository structure](#repository-structure)
 12. [Acknowledgements](#acknowledgements)
