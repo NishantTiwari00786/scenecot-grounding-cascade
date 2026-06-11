@@ -5,9 +5,9 @@
 
 **Paper studied:** SceneCOT: Eliciting Grounded Chain-of-Thought Reasoning in 3D Scenes (ICLR 2026)
 
-Project webpage: (link to be added)
+Project webpage: UPDATE LINK HERE
 
-Video walkthrough: (link to be added)
+Video walkthrough: UPDATE LINK HERE
 
 ---
 
