@@ -2,9 +2,10 @@
 """
 make_scene_renders.py
 
-Renders the actual 3D ScanNet scene for cascade examples, highlighting the object
-the model wrongly grounded (red) and the correct object (green) in the real room.
-This is the true scene visual: it shows where in the room each object is.
+Renders the actual 3D ScanNet scene for cascade examples in an angled 3D view,
+highlighting the object the model wrongly grounded (red) and the correct object
+(green) in the real room. Only renders examples where BOTH objects exist in the
+scene, so every image shows the contrast.
 """
 
 import json, os, re, argparse
@@ -57,7 +58,6 @@ def clean_q(instruction):
 
 
 def load_scene(scene_id):
-    # returns xyz, rgb, instance_ids, {instance_id: label}
     pcd_path = f"{SCAN_BASE}/pcd_with_global_alignment/{scene_id}.pth"
     lbl_path = f"{SCAN_BASE}/instance_id_to_label/{scene_id}.pth"
     if not (os.path.exists(pcd_path) and os.path.exists(lbl_path)):
@@ -72,7 +72,6 @@ def load_scene(scene_id):
 
 
 def find_instance_ids(inst_labels, target_label):
-    # return all instance ids whose label matches the target (with simple variants)
     target = target_label.lower().strip()
     ids = []
     for iid, lab in inst_labels.items():
@@ -83,29 +82,41 @@ def find_instance_ids(inst_labels, target_label):
 
 
 def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
-    fig, ax = plt.subplots(figsize=(8, 7))
-    # base room (everything not highlighted) in its real colors
+    # angled 3D view of the room, with the wrong object in red and correct in green
+    fig = plt.figure(figsize=(9, 7))
+    ax = fig.add_subplot(111, projection='3d')
+
     highlight = np.isin(inst, wrong_ids + correct_ids)
     base = ~highlight
-    ax.scatter(xyz[base, 0], xyz[base, 1], c=rgb[base], s=2, alpha=0.45)
+    # subsample the background points for a cleaner, less noisy look
+    base_idx = np.where(base)[0]
+    if len(base_idx) > 12000:
+        base_idx = np.random.choice(base_idx, size=12000, replace=False)
+    ax.scatter(xyz[base_idx, 0], xyz[base_idx, 1], xyz[base_idx, 2],
+               c=rgb[base_idx], s=3, alpha=0.35, linewidths=0)
+
     # wrong object red
-    if wrong_ids:
-        w = np.isin(inst, wrong_ids)
-        ax.scatter(xyz[w, 0], xyz[w, 1], c='#d32f2f', s=10,
-                   label=f"model grounded: {info['wrong_label']}")
+    w = np.isin(inst, wrong_ids)
+    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#d32f2f', s=18,
+               label=f"model grounded: {info['wrong_label']}", linewidths=0)
     # correct object green
-    if correct_ids:
-        c = np.isin(inst, correct_ids)
-        ax.scatter(xyz[c, 0], xyz[c, 1], c='#2a8844', s=10,
-                   label=f"correct object: {info['correct_label']}")
-    ax.set_aspect('equal')
-    ax.legend(loc='upper right', fontsize=9)
-    ax.axis('off')
-    ax.set_title(f"Q: {info['question']}", fontsize=10, loc='left')
+    c = np.isin(inst, correct_ids)
+    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#2a8844', s=18,
+               label=f"correct object: {info['correct_label']}", linewidths=0)
+
+    ax.view_init(elev=55, azim=-60)         # angled view that reads as a 3D room
+    ax.set_box_aspect((1, 1, 0.4))
+    ax.legend(loc='upper right', fontsize=10)
+    # strip axes, ticks, grid, and panes for a clean scene look
+    ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
+    ax.xaxis.pane.fill = False; ax.yaxis.pane.fill = False; ax.zaxis.pane.fill = False
+    ax.grid(False)
+
+    plt.title(f"Q: {info['question']}", fontsize=10)
     note = (f"Model answered '{info['answer']}' (correct: '{info['correct_answer']}'). "
-            f"Top-down view of {scene_id}.  [CASCADE]")
+            f"Scene {scene_id}.  [CASCADE]")
     fig.text(0.02, 0.02, note, fontsize=8.5, va='bottom')
-    plt.tight_layout(rect=[0, 0.04, 1, 1])
+    plt.tight_layout()
     plt.savefig(out_path, dpi=130, bbox_inches='tight')
     plt.close()
 
@@ -153,8 +164,8 @@ def main():
 
         wrong_ids = find_instance_ids(inst_labels, wrong_label)
         correct_ids = find_instance_ids(inst_labels, correct_label)
-        # need at least the correct object present in the scene to be meaningful
-        if not correct_ids:
+        # require BOTH objects present in the scene, so every render shows red AND green
+        if not correct_ids or not wrong_ids:
             continue
 
         info = {
