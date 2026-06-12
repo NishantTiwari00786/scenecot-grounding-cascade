@@ -31,10 +31,13 @@ empirically that this design choice is where its failures concentrate.
 We also identify a **second bottleneck** at a different stage of the pipeline
 (Part 3, spatial representation). Even when the model grounds the right objects,
 spatial relationship questions fail at a much higher rate than existence
-questions. We traced this to how SceneCOT passes spatial information to the
-language model: object coordinates are rounded to a ten centimeter grid before
-the model reads them, which destroys the fine geometry needed to answer questions
-like "in front of" or "within the area of."
+questions (21.1 percent on the full MSQA test set). We traced this to how
+SceneCOT passes spatial information to the language model: object coordinates are
+rounded to a ten centimeter grid before the model reads them, which destroys the
+fine geometry needed to answer questions like "in front of" or "within the area
+of." On a harder stress test slice filtered for explicit directional language,
+spatial relationship accuracy drops further to 16.7 percent, confirming that the
+limitation concentrates on the questions that demand the finest geometry.
 
 The course asked for depth over breadth, so we focused on these two bottlenecks
 and studied each carefully with both quantitative and qualitative evidence.
@@ -556,12 +559,35 @@ Spatial relationship sits near the bottom. Of 190 spatial relationship questions
 | counting | 24 |
 | other | 9 |
 
-*Stress slice evaluation (pending).* We submitted run_eval_spatial.sh as SLURM
-job 107623 to re run the model on the 114 question slice. **Update this section
-when the job finishes** with the spatial relationship exact match on the slice
-and a comparison to the 21.1 percent baseline above.
+*Stress slice evaluation (SLURM job 107623, eval_spatial_output_107623.txt):*
 
-**Finding: spatial failures trace to coarse grounding text, not just wrong
+We re ran the model on the 114 question slice using run_eval_spatial.sh. The MSQA
+predictions are in
+experiments/SceneCOT_msqa_beacon3d_test_moe/eval_results/QACOTScanNetMSR3D/results_stress_slice.json
+(114 entries). The eval script also runs the full GQA3D split afterward, which is
+why the log still shows 596 total batches even though MSQA results contain only
+114 questions.
+
+| QA type | Correct | Total | EM (stress slice) | EM (full MSQA baseline) |
+|---------|--------:|------:|------------------:|------------------------:|
+| spatial relationship | 7 | 42 | **16.7%** | 21.1% |
+| navigation | 7 | 39 | 17.9% | 14.6% |
+| counting | 9 | 24 | 37.5% | 42.1% |
+
+**Finding 1: spatial relationship is among the worst categories on the full test
+set.** At 21.1 percent exact match (40 of 190), it sits near the bottom alongside
+navigation (14.6 percent), while existence reaches 82.3 percent. One hundred fifty
+spatial relationship questions failed.
+
+**Finding 2: the limitation concentrates on hard spatial questions.** On the
+stress slice, spatial relationship accuracy drops to 16.7 percent (7 of 42),
+below the full set baseline of 21.1 percent. The filter deliberately kept
+questions with explicit directional tokens ("behind", "closest to", and similar)
+or multi object relative tracking phrasing, the cases where fine grained geometry
+matters most. The model performs worse on exactly the subset where truncation
+should hurt most.
+
+**Finding 3: spatial failures trace to coarse grounding text, not just wrong
 objects.** In the qualitative failures below, the model often grounds the
 correct object types with high confidence, but the obj_loc_prob strings use
 coordinates rounded to ten centimeters. The model then asserts a plausible but
@@ -579,7 +605,10 @@ encode the relation the benchmark asks for.
 | scene0231_00 | Where is the lamp relative to the armchair? | lamp is in front of the armchair | lamp is above the armchair | lamp z=1.6, armchair z=0.7. Vertical offset is preserved but horizontal front/back distinction depends on fine offsets the string does not reliably encode. |
 | scene0458_00 | Relationship between bottle and soap dish | bottle is lower than soap dish, within shower area | bottle is supported by the soap dish | Both objects detected; relation confused between vertical ordering and support/contact. |
 
-Twenty annotated failures with full chain of thought are in results/spatial_failures.txt.
+Twenty annotated baseline failures with full chain of thought are in
+results/spatial_failures.txt (from eval_output_107559.txt). Twenty failures
+from the stress slice run are in results/spatial_failures_stress_slice.txt
+(from eval_spatial_output_107623.txt).
 
 **Limitations of this analysis (Option A).**
 
@@ -593,9 +622,11 @@ and shows it causes failures in simulation and in real log examples, but we have
 not run a controlled ablation that changes the formatting to two decimal places
 and remeasures accuracy. That would be the strongest confirmation.
 
-Third, the stress slice evaluation results are not yet included. When job 107623
-completes, we will update the Results subsection above with the hard subset
-numbers.
+Third, the stress slice is a heuristic filter (directional keywords plus multi
+object relative phrasing), not an oracle difficulty label. It also mixes in
+navigation and counting questions that share directional language but may fail
+for other reasons. We report spatial relationship separately within the slice
+for this reason.
 
 ---
 
@@ -653,6 +684,14 @@ python3 diagnose_spatial.py eval_output_107559.txt \
   --top 20 > results/spatial_failures.txt
 ```
 
+Parse the stress slice eval log (after run_eval_spatial.sh completes):
+
+```bash
+python3 diagnose_spatial.py eval_spatial_output_107623.txt \
+  --results-json experiments/SceneCOT_msqa_beacon3d_test_moe/eval_results/QACOTScanNetMSR3D/results_stress_slice.json \
+  --top 20 > results/spatial_failures_stress_slice.txt
+```
+
 Generate the spatial stress test slice from the MSQA test annotations:
 
 ```bash
@@ -686,14 +725,16 @@ EE243_Scenecot_Project/
 │   └── SceneCOT_msqa_beacon3d_test_moe/
 │       └── eval_results/
 │           ├── QACOTScanNetMSR3D/
-│           │   └── results.json        # MSQA predictions, 826 questions
+│           │   ├── results.json              # MSQA baseline predictions, 826 questions
+│           │   └── results_stress_slice.json # MSQA stress slice predictions, 114 questions
 │           └── QACOTScanNetGQA3D/
-│               └── results.json        # GQA3D and Beacon3D predictions
+│               └── results.json              # GQA3D and Beacon3D predictions
 ├── data/
-│   └── msqa_spatial_stress_test.json   # 114 question spatial stress slice (generated)
+│   └── msqa_spatial_stress_test.json         # 114 question spatial stress slice (generated)
 ├── results/
-│   ├── spatial_failures.txt            # Option A, qualitative failure diagnosis
-│   └── rotation_resolution_output.txt  # Option A, truncation simulation output
+│   ├── spatial_failures.txt                  # Option A, baseline failure diagnosis
+│   ├── spatial_failures_stress_slice.txt     # Option A, stress slice failure diagnosis
+│   └── rotation_resolution_output.txt        # Option A, truncation simulation output
 ├── scene_renders/                      # Option B, 3D render figures
 ├── qualitative_cards/                  # Option B, side by side image cards
 ├── grounding_cascade_analysis.py       # Option B analysis script
@@ -703,9 +744,10 @@ EE243_Scenecot_Project/
 ├── generate_spatial_test_slice.py      # Option A, spatial stress test slice
 ├── test_rotation_resolution.py         # Option A, coordinate truncation simulation
 ├── run_eval.sh                         # Batch script for baseline evaluation
-├── run_eval_spatial.sh                 # Batch script for spatial slice evaluation
-├── eval_output_107559.txt              # Full baseline evaluation log
-├── cascade_analysis_output.txt         # Option B analysis output
+├── run_eval_spatial.sh                       # Batch script for spatial slice evaluation
+├── eval_output_107559.txt                    # Full baseline evaluation log
+├── eval_spatial_output_107623.txt            # Stress slice evaluation log (job 107623)
+├── cascade_analysis_output.txt               # Option B analysis output
 └── BASELINE_RESULTS.md                 # Baseline numbers summary
 ```
 
