@@ -315,38 +315,11 @@ and reproducible.
 | Wrong grounding, right answer | 48 (36.4%) | 24 (41.4%) |
 | Right grounding, wrong answer (reasoning) | 15 (11.4%) | 0 (0.0%) |
 
-Finding 1: failures concentrate in grounding, and the sequential design makes them
-final. Of all wrong answers, 83.5 percent across both types trace to the model
-grounding the wrong object (80.3 percent for counting, 100 percent for existence).
-Reasoning failures, where grounding was correct but the answer still wrong, are rare.
-Because the pipeline has no step that revisits grounding, these grounding errors cannot
-be corrected and propagate straight to the answer. This is the cascade, and it is the
-dominant failure mode, which is the structural limitation we set out to demonstrate.
-
-A detail worth reading off the table: on counting, the "right grounding, right answer"
-group is tiny (8 of 132, 6.1 percent). That is partly because grounding on counting is
-hard (the model rarely grounds every correct object), and partly because counting is
-hard even when grounding is right. The reasoning failure row (15, 11.4 percent) shows
-the second effect directly: even with correct grounding, the final count is sometimes
-still wrong.
-
-Finding 2: a large share of correct answers are not grounded, so accuracy overstates
-real understanding. On counting, 36.4 percent of answers were correct even though the
-model grounded the wrong object. Counting has many possible answers, so this is not
-coincidence the way a yes/no guess could be. The model frequently arrives at the right
-number while attending to the wrong objects. We are careful here: this is not a claim
-about the paper's coherence metric. It is a measurement of the gap between answer
-accuracy and correct grounding, and it shows that raw accuracy is an inflated picture of
-how grounded the model's answers really are.
-
-To distinguish the two wrong-grounding groups clearly:
-
-
-A cascade is a chain reaction. The wrong grounded object is fed into the answering
-step, so the answer comes out wrong. The grounding error caused the answer error.
-A correct answer without correct grounding is the opposite surprise. The model
-also grounded the wrong object, but the answer happened to be right anyway, so the
-correctness is not explained by grounding.
+Our analysis covers the counting and existence questions from the 826 MSQA test questions: 133 counting and 96 existence, which is 229 of the 826. Of those, 190 were evaluable (132 counting and 58 existence), after dropping questions whose ground truth chain had no grounded object to compare against. Those 190 are what the table below is built from.
+Finding 1: failures concentrate in grounding, and the sequential design makes them final. Of all the wrong answers, 83.5 percent trace back to the model grounding the wrong object (80.3 percent for counting, 100 percent for existence). To be clear about how that is computed, a wrong answer is either a cascade (wrong grounding) or a reasoning failure (right grounding but wrong answer anyway), and the percentage is cascades divided by all wrong answers. For existence, all 15 wrong answers were cascades and none were reasoning failures, so it is 100 percent. For counting, 61 of the 76 wrong answers were cascades, so 80.3 percent. Reasoning failures are rare in both. Because the pipeline never revisits grounding, these grounding errors cannot be corrected and propagate straight to the answer. This is the cascade, and it is the dominant failure mode, which is the structural limitation we set out to demonstrate.
+One detail worth reading off the table: on counting, the "right grounding, right answer" group is tiny, only 8 of 132. That is partly because grounding on counting is genuinely hard, so the model rarely grounds every correct object, and partly because counting is hard even when the grounding is right. The reasoning failure row, 15 of 132, shows that second effect directly: even with correct grounding, the final count is sometimes still wrong.
+Finding 2: a large share of correct answers are not actually grounded, so accuracy overstates real understanding. On counting, 36.4 percent of answers were correct even though the model grounded the wrong object. Counting has many possible answers, so this is not the kind of coincidence a yes/no guess could produce. The model is often landing on the right number while looking at the wrong objects. We are careful with the wording here: this is not a claim about the paper's coherence metric. It is a measurement of the gap between answer accuracy and correct grounding, and it shows that raw accuracy gives an inflated picture of how grounded the model's answers really are.
+To keep the two wrong-grounding groups separate: a cascade is a chain reaction, where the wrong grounded object goes into the answering step and the answer comes out wrong, so the grounding error caused the answer error. A correct answer without correct grounding is the opposite surprise, where the model also grounded the wrong object but the answer happened to be right anyway, so the correctness is not explained by grounding.
 
 ---
 
