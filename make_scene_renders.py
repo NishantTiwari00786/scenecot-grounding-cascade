@@ -2,10 +2,10 @@
 """
 make_scene_renders.py
 
-Renders the actual 3D ScanNet scene for cascade examples in an angled 3D view,
-highlighting the object the model wrongly grounded (red) and the correct object
-(green) in the real room. Only renders examples where BOTH objects exist in the
-scene, so every image shows the contrast.
+Renders the actual 3D ScanNet scene for cascade examples in a clean angled 3D
+view, highlighting the object the model wrongly grounded (bold red) and the
+correct object (bold green) in the real room. Only renders examples where BOTH
+objects exist in the scene, so every image shows the contrast.
 """
 
 import json, os, re, argparse
@@ -53,7 +53,13 @@ def extract_answer(text):
 
 
 def clean_q(instruction):
+    # Get the actual question: prefer the last sentence ending in '?', so the
+    # title does not start mid-sentence like "trol and privacy...".
     q = instruction.split('ASSISTANT')[0].strip()
+    sentences = re.split(r'(?<=[.?!])\s+', q)
+    questions = [s.strip() for s in sentences if '?' in s]
+    if questions:
+        return questions[-1]
     return q[-110:].strip()
 
 
@@ -81,43 +87,59 @@ def find_instance_ids(inst_labels, target_label):
     return ids
 
 
+def _draw_ring(ax, pts, color):
+    # draw a ring around a compact cluster to help the eye find it.
+    if len(pts) < 20:
+        return
+    cx, cy, cz = pts[:, 0].mean(), pts[:, 1].mean(), pts[:, 2].mean()
+    spread = np.percentile(np.linalg.norm(pts[:, :2] - [cx, cy], axis=1), 90)
+    if spread > 1.2:          # cluster too spread out, a ring would look wrong
+        return
+    r = max(0.3, spread * 1.4)
+    theta = np.linspace(0, 2 * np.pi, 60)
+    ax.plot(cx + r * np.cos(theta), cy + r * np.sin(theta), cz,
+            color=color, lw=2.0, alpha=0.85, zorder=6)
+
+
 def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
-    # angled 3D view of the room, with the wrong object in red and correct in green
-    fig = plt.figure(figsize=(9, 7))
+    fig = plt.figure(figsize=(11, 8))
     ax = fig.add_subplot(111, projection='3d')
 
     highlight = np.isin(inst, wrong_ids + correct_ids)
     base = ~highlight
-    # subsample the background points for a cleaner, less noisy look
     base_idx = np.where(base)[0]
-    if len(base_idx) > 12000:
-        base_idx = np.random.choice(base_idx, size=12000, replace=False)
+    if len(base_idx) > 45000:
+        base_idx = np.random.choice(base_idx, size=45000, replace=False)
     ax.scatter(xyz[base_idx, 0], xyz[base_idx, 1], xyz[base_idx, 2],
-               c=rgb[base_idx], s=3, alpha=0.35, linewidths=0)
+               c=rgb[base_idx], s=2.5, alpha=0.30, linewidths=0, zorder=1)
 
-    # wrong object red
     w = np.isin(inst, wrong_ids)
-    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#d32f2f', s=18,
-               label=f"model grounded: {info['wrong_label']}", linewidths=0)
-    # correct object green
-    c = np.isin(inst, correct_ids)
-    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#2a8844', s=18,
-               label=f"correct object: {info['correct_label']}", linewidths=0)
+    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#e02424', s=42, alpha=1.0,
+               edgecolors='#5a0000', linewidths=0.4, zorder=5,
+               label=f"model grounded: {info['wrong_label']} (WRONG)")
+    _draw_ring(ax, xyz[w], '#e02424')
 
-    ax.view_init(elev=55, azim=-60)         # angled view that reads as a 3D room
-    ax.set_box_aspect((1, 1, 0.4))
-    ax.legend(loc='upper right', fontsize=10)
-    # strip axes, ticks, grid, and panes for a clean scene look
+    c = np.isin(inst, correct_ids)
+    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#1f9d4d', s=42, alpha=1.0,
+               edgecolors='#003313', linewidths=0.4, zorder=5,
+               label=f"correct object: {info['correct_label']}")
+    _draw_ring(ax, xyz[c], '#1f9d4d')
+
+    ax.view_init(elev=38, azim=-72)
+    ax.set_box_aspect((1, 1, 0.32))
+    ax.legend(loc='upper right', fontsize=11, framealpha=0.92)
     ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
-    ax.xaxis.pane.fill = False; ax.yaxis.pane.fill = False; ax.zaxis.pane.fill = False
+    for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
+        pane.fill = False
+        pane.set_edgecolor('none')
     ax.grid(False)
 
-    plt.title(f"Q: {info['question']}", fontsize=10)
-    note = (f"Model answered '{info['answer']}' (correct: '{info['correct_answer']}'). "
-            f"Scene {scene_id}.  [CASCADE]")
-    fig.text(0.02, 0.02, note, fontsize=8.5, va='bottom')
-    plt.tight_layout()
-    plt.savefig(out_path, dpi=130, bbox_inches='tight')
+    plt.title(info['question'], fontsize=13, weight='bold', pad=10)
+    note = (f"Model grounded '{info['wrong_label']}' (red) and answered "
+            f"'{info['answer']}'. Correct object '{info['correct_label']}' (green) "
+            f"was present. Correct answer: '{info['correct_answer']}'.  Scene {scene_id}.")
+    fig.text(0.5, 0.035, note, ha='center', fontsize=10)
+    plt.savefig(out_path, dpi=160, bbox_inches='tight')
     plt.close()
 
 
@@ -164,7 +186,6 @@ def main():
 
         wrong_ids = find_instance_ids(inst_labels, wrong_label)
         correct_ids = find_instance_ids(inst_labels, correct_label)
-        # require BOTH objects present in the scene, so every render shows red AND green
         if not correct_ids or not wrong_ids:
             continue
 
