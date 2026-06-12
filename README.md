@@ -24,8 +24,7 @@ and separately that a large share of the model's correct answers are produced
 without correct grounding, which means its accuracy overstates how much it
 actually understands the scene.
 
-This is not the claim "the model sometimes makes mistakes." Every model makes
-mistakes. The point is about the **design**: SceneCOT commits to a single
+The experimentation is about the **design**: SceneCOT commits to a single
 grounding result at inference with no recovery mechanism, and we demonstrate
 empirically that this design choice is where its failures concentrate.
 
@@ -41,9 +40,9 @@ empirically that this design choice is where its failures concentrate.
 4. [Datasets: what SceneCOT trains on and what we test on](#datasets-what-scenecot-trains-on-and-what-we-test-on)
 5. [Part 1: Reproducing the baseline](#part-1-reproducing-the-baseline)
 6. [Part 2: How we got from the baseline to our experiment](#part-2-how-we-got-from-the-baseline-to-our-experiment)
-7. [Method: exactly what we measured](#method-exactly-what-we-measured)
-8. [Results](#results)
-9. [Qualitative results: seeing the grounding error](#qualitative-results-seeing-the-grounding-error)
+7. [Method: exactly what we measured and discussion on code](#method-exactly-what-we-measured)
+8. [Quantitative Results](#results)
+9. [Qualitative results: seeing the visual examples](#qualitative-results-seeing-the-grounding-error)
 10. [Success cases](#success-cases)
 11. [Limitations of our analysis](#limitations-of-our-analysis)
 12. [Part 3: Spatial reasoning experiment](#part-3-spatial-reasoning-experiment-option-a)
@@ -75,7 +74,8 @@ consumes the output of the previous one:
    mechanism in detail:
    - First, an off the shelf 3D instance segmenter, **Mask3D**, has already broken
      the room into a fixed set of candidate object proposals (one mask per detected
-     object).
+     object). In the released data these predicted instances are the `pred` point
+    clouds the eval loads `(data.cotqa.msr3d.pc_type=pred)`.
    - The grounding module, which is based on **PQ3D**, then scores each of those
      proposals for how well it matches the question, and emits an object
      probability list. In the saved reasoning chain this appears as a section
@@ -175,9 +175,15 @@ The underlying 3D scenes come from **ScanNet**, a large public collection of rea
 indoor room scans (offices, bathrooms, kitchens). The authors did not collect new
 scenes; they reused ScanNet and added reasoning chains and the GQA3D questions.
 
-**What we tested on.** Our experiment uses the **MSQA test split** as produced by
-our baseline run, stored in `QACOTScanNetMSR3D/results.json` (826 questions across
-nine types). From these we focus on the two most grounding dependent types:
+The data we actually evaluate on: The MSQA test splt: The MSQA annotations ar bundled inside SceneCOT's released data, 
+in `data_assets/scenecot_cot_data/MSQA`. We did not download MSQA separateky or built it overselves. 
+It is shipped with SceneCOT data release, and the evaluation script point at it through the environment variable 
+`SCENECOT_MSR3D_ANNO_DIR`
+
+MSQA (Multi-moddal Situated Question Answering) places an agent at a specific position and orientation inside a real ScanNet room, and asks 
+a question about the surrounding objects. Each entry records  the scene id, the agent position and orientation, the question type, 
+and ground truth reasoning chain (which includes the object that should be grounded). The MSQA test split spans nine question types but we used 
+counting and existence
 
 | Type | Count | Why we chose it |
 |------|-------|-----------------|
@@ -259,21 +265,35 @@ second tests whether the model's accuracy is genuinely grounded.
 
 ---
 
-## Method: exactly what we measured
+## Method: the grounding cascade analysis code
 
-We analyze the counting and existence questions. For each question we extract four
-things from the saved chains:
+Our analysis is implemented in `grounding_cascade_analysis.py`. Here is exactly what it
+does, step by step, so the numbers below are fully reproducible.
 
-- **Objects the model grounded:** every entry in its `<obj_prob>` list with
-  confidence at least 0.5.
-- **Objects it should have grounded:** the same, from the ground truth chain.
-- **Grounding correct (yes/no):** yes if the model grounded at least one of the
-  correct object types. We use this lenient rule on purpose; a stricter rule would
-  only make grounding look worse, so our cascade numbers are conservative.
-- **Answer correct (yes/no):** yes if the model's final answer matches the correct
-  answer after text normalization.
 
-Crossing the two yes/no facts gives four groups:
+1. Parse the grounding list. For each question, the code reads the model's saved
+reasoning chain and pulls out the `<obj_prob>` section, turning text like
+book 0.75 boxes 0.64 desk 0.63 into a list of (object, confidence) pairs. We filter
+out non-object words (a small stopword list like "the", "object", "probability") so
+they are never mistaken for grounded objects.
+
+2. Decide what was grounded. An object counts as "grounded" only if its confidence
+is at least 0.5. We do the same parsing on the ground truth chain to get the objects
+that should have been grounded.
+
+3. Decide if grounding was correct. We use a deliberately lenient rule: grounding
+counts as correct if the model grounded at least one of the correct object types (a set
+intersection between the model's grounded labels and the ground truth labels). A
+stricter rule would only make grounding look worse, so this keeps our cascade numbers
+conservative. The label match is text based, which we list as a limitation later.
+
+4. Decide if the answer was correct. We pull the final answer out of both chains and
+normalize the text (stripping stray unicode characters that appear in the saved ground
+truth answers) so that, for example, a noisy version of "four" compares equal to "four".
+
+5. Cross-tabulate. Each question is sorted by two yes/no facts (grounding correct,
+answer correct) into one of four groups:
+
 
 | | Answer right | Answer wrong |
 |---|---|---|
@@ -285,9 +305,8 @@ and reproducible.
 
 ---
 
-## Results
+## Quantitative Results
 
-Quantitative Results
 
 | Category | Counting (n=132) | Existence (n=58) |
 |----------|-----------------:|-----------------:|
@@ -296,50 +315,118 @@ Quantitative Results
 | Wrong grounding, right answer | 48 (36.4%) | 24 (41.4%) |
 | Right grounding, wrong answer (reasoning) | 15 (11.4%) | 0 (0.0%) |
 
-**Finding 1: failures concentrate in grounding, and the sequential design makes
-them final.** Of all wrong answers, 83.5 percent across both types trace to the
-model grounding the wrong object (80.3 percent for counting, 100 percent for
-existence). Reasoning failures, where grounding was correct but the answer still
-wrong, are rare. Because the pipeline has no step that revisits grounding, these
-grounding errors cannot be corrected and propagate straight to the answer. This is
-the cascade, and it is the dominant failure mode, which is the structural
-limitation we set out to demonstrate.
+Finding 1: failures concentrate in grounding, and the sequential design makes them
+final. Of all wrong answers, 83.5 percent across both types trace to the model
+grounding the wrong object (80.3 percent for counting, 100 percent for existence).
+Reasoning failures, where grounding was correct but the answer still wrong, are rare.
+Because the pipeline has no step that revisits grounding, these grounding errors cannot
+be corrected and propagate straight to the answer. This is the cascade, and it is the
+dominant failure mode, which is the structural limitation we set out to demonstrate.
 
-**Finding 2: a large share of correct answers are not grounded, so accuracy
-overstates real understanding.** On counting, 36.4 percent of answers were correct
-even though the model grounded the wrong object. Counting has many possible answers,
-so this is not coincidence the way a yes/no guess could be. The model frequently
-arrives at the right number while attending to the wrong objects. We are careful
-here: this is not a claim about the paper's coherence metric. It is a measurement of
-the gap between answer accuracy and correct grounding, and it shows that raw
-accuracy is an inflated picture of how grounded the model's answers really are.
+A detail worth reading off the table: on counting, the "right grounding, right answer"
+group is tiny (8 of 132, 6.1 percent). That is partly because grounding on counting is
+hard (the model rarely grounds every correct object), and partly because counting is
+hard even when grounding is right. The reasoning failure row (15, 11.4 percent) shows
+the second effect directly: even with correct grounding, the final count is sometimes
+still wrong.
+
+Finding 2: a large share of correct answers are not grounded, so accuracy overstates
+real understanding. On counting, 36.4 percent of answers were correct even though the
+model grounded the wrong object. Counting has many possible answers, so this is not
+coincidence the way a yes/no guess could be. The model frequently arrives at the right
+number while attending to the wrong objects. We are careful here: this is not a claim
+about the paper's coherence metric. It is a measurement of the gap between answer
+accuracy and correct grounding, and it shows that raw accuracy is an inflated picture of
+how grounded the model's answers really are.
 
 To distinguish the two wrong-grounding groups clearly:
 
-- A **cascade** is a chain reaction. The wrong grounded object is fed into the
-  answering step, so the answer comes out wrong. The grounding error caused the
-  answer error.
-- A **correct answer without correct grounding** is the opposite surprise. The model
-  also grounded the wrong object, but the answer happened to be right anyway, so the
-  correctness is not explained by grounding.
+
+A cascade is a chain reaction. The wrong grounded object is fed into the answering
+step, so the answer comes out wrong. The grounding error caused the answer error.
+A correct answer without correct grounding is the opposite surprise. The model
+also grounded the wrong object, but the answer happened to be right anyway, so the
+correctness is not explained by grounding.
 
 ---
 
 ## Qualitative results: seeing the grounding error
 
-Text findings are stronger when you can see the actual objects involved. For each
-wrong-grounding case we build a side by side card from real ScanNet object images:
-on the left, the object the model grounded (its mistake); on the right, the object
-it should have grounded. The script `make_qualitative_cards.py` produces these.
+To make the cascade visible, we render the actual ScanNet room for cascade examples and
+draw a red 3D box around the object the model wrongly grounded and a green 3D box around
+the correct object. If the grounding error is real, the red box sits on the wrong object
+while the green box sits on the object the question was actually about.
 
-The clearest example is a counting cascade: for "How many chairs are at your 11
-o'clock?" the grounding step returned a single merged proposal labeled "stack of
-chairs" rather than separate chairs, so the model counted zero individual chairs
-when the answer was one. The card shows the merged object next to a correct single
-chair, making the cause of the error visible.
+A note on the renders, and why they are not as clean as the paper's figures
 
-(Generated cards are in the `qualitative_cards/` folder. See the webpage for the
-selected set.)
+The SceneCOT paper shows smooth, textured 3D rooms. We could not reproduce that exact
+look, because `(SceneVerse/ScanNet/scan_data/pcd_with_global_alignment)` contains point clouds
+only: for each scene we get the XYZ coordinates, the RGB color, and a per-point
+instance id, but no surface mesh (no faces or triangles). The paper's smooth figures
+use the original ScanNet textured meshes, which are not part of this release.
+
+Getting those original meshes is not a quick step. The full ScanNet dataset is gated
+behind a signed terms-of-use agreement, the download is on the order of a terabyte, and
+it would then need its own processing pipeline to align and render. That is well outside
+the scope and time of this project. So instead of downloading ScanNet, we wrote our own
+rendering code
+`(make_scene_renders.py)` that:
+
+1. loads the point cloud and the instance-to-label dictionary for a scene,
+2. runs Poisson surface reconstruction (via Open3D) to turn the raw points into a
+continuous surface, which is what gives our renders their solid look.
+3. finds the instance ids whose label matches the grounded object and the correct
+object, and draws a tight 3D bounding box around each instance.
+4. renders the result from an angled top-down view.
+
+The result is recognizably a real room with the two objects boxed, which is enough to
+see the grounding error. But because we reconstruct the surface from points rather than
+using a real mesh, the surfaces are bumpy in places and some boxes are loose. 
+
+Figure 1: "Is there a book at your 5 o'clock?" The model grounded boxes instead of book and
+answered no, when the correct answer was yes. The green boxes sit on the actual books;
+the red box sits on the wrong object
+
+![Figure 1](scene_renders/scene_01.png)
+
+
+Figure 2: "Is there a cup to the left of the shelf on your right?" The model grounded bookshelves
+instead of cup and answered no, when the answer was yes. The wrong object (red) and the
+real cup (green) are in clearly different parts of the room.
+
+![Figure 2](scene_renders/scene_02.png)
+
+Figure 3: "Is there a display case on your right?" The model grounded plant instead of
+display case and answered no, when the answer was yes.
+
+![Figure 3](scene_renders/scene_03.png)
+
+
+Figure 4: "How many chairs are in the middle distance behind you?" The model grounded armchair
+instead of chair, so it counted the wrong set of objects.
+
+![Figure 4](scene_renders/scene_04.png)
+
+
+
+Figure 5: A second view of the same merged-chairs failure mode, where the grounded object does not
+line up with the individual chairs the question asks about.
+
+![Figure 5](scene_renders/scene_05.png)
+
+
+Figure 6: "How many chairs are at your 11 o'clock?" This is the clearest counting cascade: the
+grounding step returned a single merged proposal labeled stack of chairs rather than
+separate chairs, so the model could not count the individual chairs correctly. The green
+boxes show the real chairs the question is about.
+
+![Figure 6](scene_renders/scene_06.png)
+
+
+
+
+
+
 
 ---
 
@@ -380,6 +467,12 @@ a controlled intervention. The natural stronger test is to substitute oracle
 grounding (force the correct object) and measure how much the answers improve. The
 paper's own oracle style experiments point the same direction, and we note this as
 the clear next step.
+
+Fourth, on the qualitative side, our scene renders are reconstructed from point clouds
+rather than drawn from the original ScanNet meshes, so they are visually imperfect and the
+bounding boxes are approximate. They are meant as supporting evidence that the grounded
+object and the correct object occupy different places in the room, not as exact
+segmentations.
 
 ---
 
