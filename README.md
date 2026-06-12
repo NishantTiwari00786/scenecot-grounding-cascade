@@ -28,7 +28,16 @@ The experimentation is about the **design**: SceneCOT commits to a single
 grounding result at inference with no recovery mechanism, and we demonstrate
 empirically that this design choice is where its failures concentrate.
 
-## SIMAR ADD SPATIAL STUFF HERE ## 
+We also identify a **second bottleneck** at a different stage of the pipeline
+(Part 3, spatial representation). Even when the model grounds the right objects,
+spatial relationship questions fail at a much higher rate than existence
+questions. We traced this to how SceneCOT passes spatial information to the
+language model: object coordinates are rounded to a ten centimeter grid before
+the model reads them, which destroys the fine geometry needed to answer questions
+like "in front of" or "within the area of."
+
+The course asked for depth over breadth, so we focused on these two bottlenecks
+and studied each carefully with both quantitative and qualitative evidence.
 
 ---
 
@@ -458,16 +467,146 @@ segmentations.
 This part studies how SceneCOT handles spatial relationship questions and is led by
 Simarpal Singh.
 
-(Simar to add: the hypothesis, the method, the results, and the success and failure
-cases. Related files already in the repository are `diagnose_spatial.py`,
-`generate_spatial_test_slice.py`, `test_rotation_resolution.py`,
-`run_eval_spatial.sh`, and the `results/` folder.)
+**From baseline to experiment.** The baseline GQA3D table in Part 1 reports
+51.3 percent on spatial questions using the refined exact match metric. When we
+looked inside the MSQA predictions at the question type level using strict exact
+match, spatial relationship was one of the worst categories at 21.1 percent
+(40 correct out of 190), while existence reached 82.3 percent (79 out of 96).
+That gap suggested the problem is not uniform across question types. Spatial
+relationship questions require precise relative geometry between objects, so we
+asked whether the model is failing because it picks the wrong objects, or
+because the spatial information it receives is too coarse to reason from.
+
+**The limitation we are testing.** SceneCOT does not pass raw 3D coordinates
+directly to the language model. After the grounding module detects objects, the
+model injects their locations as text inside a chain of thought tag called
+obj_loc_prob. Each object is written as a comma separated string of egocentric
+x, y, z coordinates plus size, for example microwave: -3.0,-0.7,1.4,0.7,0.2,0.5.
+The language model then reads these strings and reasons about spatial
+relationships from them. Our claim is that this representation has a built in
+floor: coordinates are formatted with one decimal place, which snaps every axis
+to a ten centimeter grid. Relations that depend on finer offsets, such as
+whether a cup is on a table or whether a lamp is in front of versus above a
+chair, become ambiguous or wrong before the language model ever reasons about
+them.
+
+**Why this happens (mechanism).** In scenecot/model/scenecot_agent.py, the
+function build_obj_prob_loc_txt converts each object's 3D center into the
+agent's egocentric frame using a rotation matrix, then formats the result with
+f"{coord:.1f}" on every axis. This is a deterministic input side operation, not
+a learned failure. We replicated this path in test_rotation_resolution.py using
+only the Python standard library. The simulation shows three concrete failure
+modes:
+
+- **Quantization collapse.** Two objects five to seven centimeters apart can
+  serialize to identical coordinate strings, so the language model has zero
+  signal that they occupy different positions.
+- **Sign flips at the midline.** An object four centimeters to the agent's left
+  can print as 0.0 while one eight centimeters to the right prints as -0.1,
+  inverting the apparent left right relation.
+- **Orientation dependent nondeterminism.** The same physical pair of objects
+  can collapse at some viewing angles and survive at others, because rotation
+  happens before rounding. The relation the model sees depends on camera pose
+  even when the scene is static.
+
+Full simulation output is saved in results/rotation_resolution_output.txt.
+
+**How we measured it.** We used three tools that build on each other:
+
+1. **diagnose_spatial.py** parses the baseline evaluation log
+   (eval_output_107559.txt) and extracts failed spatial relationship questions
+   with their full de tokenized chain of thought, including the obj_loc_prob
+   block the model actually reasoned from. Output is in
+   results/spatial_failures.txt.
+2. **test_rotation_resolution.py** isolates the coordinate serialization math
+   without running the model, to show why truncation causes the failures we see
+   in the log.
+3. **generate_spatial_test_slice.py** and **run_eval_spatial.sh** build and
+   evaluate a harder subset of MSQA test questions. The slice keeps questions
+   with explicit directional language (behind, underneath, closest to, and
+   similar) or multi object relative tracking phrasing. This tests whether the
+   limitation concentrates on the hardest spatial questions.
+
+**Results.**
+
+*Baseline MSQA breakdown (strict exact match, from eval_output_107559.txt):*
+
+| QA type | Correct | Total | EM |
+|---------|--------:|------:|---:|
+| existence | 79 | 96 | 82.3% |
+| spatial relationship | 40 | 190 | 21.1% |
+| navigation | 21 | 144 | 14.6% |
+| counting | 56 | 133 | 42.1% |
+
+Spatial relationship sits near the bottom. Of 190 spatial relationship questions,
+150 failed (79 percent failure rate).
+
+*Spatial stress test slice (filter only, from generate_spatial_test_slice.py):*
+
+| Filter criterion | Questions kept |
+|------------------|---------------:|
+| Directional tokens (behind, underneath, directly above, closest to, furthest) | 60 |
+| Multi object relative tracking | 56 |
+| **Total kept (union)** | **114 / 826 (13.8%)** |
+
+| Type in stress slice | Count |
+|----------------------|------:|
+| spatial relationship | 42 |
+| navigation | 39 |
+| counting | 24 |
+| other | 9 |
+
+*Stress slice evaluation (pending).* We submitted run_eval_spatial.sh as SLURM
+job 107623 to re run the model on the 114 question slice. **Update this section
+when the job finishes** with the spatial relationship exact match on the slice
+and a comparison to the 21.1 percent baseline above.
+
+**Finding: spatial failures trace to coarse grounding text, not just wrong
+objects.** In the qualitative failures below, the model often grounds the
+correct object types with high confidence, but the obj_loc_prob strings use
+coordinates rounded to ten centimeters. The model then asserts a plausible but
+wrong relation, such as "supported by" instead of "within the area of" or
+"above" instead of "in front of." This is a different failure mode from Option
+B's cascade, where the wrong object is selected entirely. Here the objects are
+often right, but the spatial representation passed to the language model cannot
+encode the relation the benchmark asks for.
+
+**Failure cases (qualitative).**
+
+| Scene | Question (short) | Ground truth | Predicted | What the model saw in obj_loc_prob |
+|-------|-----------------|--------------|-----------|-------------------------------------|
+| scene0231_00 | Relation between kitchen cabinet and microwave at 6 o'clock | microwave is within the area of the cabinet | microwave is supported by the cabinet | microwave: -3.0,-0.7,1.4 vs cabinet: -3.2,-0.7,1.8. Close coords after rounding; "within" vs "on" is underspecified. |
+| scene0231_00 | Where is the lamp relative to the armchair? | lamp is in front of the armchair | lamp is above the armchair | lamp z=1.6, armchair z=0.7. Vertical offset is preserved but horizontal front/back distinction depends on fine offsets the string does not reliably encode. |
+| scene0458_00 | Relationship between bottle and soap dish | bottle is lower than soap dish, within shower area | bottle is supported by the soap dish | Both objects detected; relation confused between vertical ordering and support/contact. |
+
+Twenty annotated failures with full chain of thought are in results/spatial_failures.txt.
+
+**Limitations of this analysis (Option A).**
+
+First, the baseline GQA3D spatial score (51.3 percent, em_refined) and our MSQA
+spatial relationship score (21.1 percent, strict exact match) use different
+benchmarks and scoring rules. We report both but do not directly compare them as
+the same number.
+
+Second, our mechanism analysis identifies the truncation in build_obj_prob_loc_txt
+and shows it causes failures in simulation and in real log examples, but we have
+not run a controlled ablation that changes the formatting to two decimal places
+and remeasures accuracy. That would be the strongest confirmation.
+
+Third, the stress slice evaluation results are not yet included. When job 107623
+completes, we will update the Results subsection above with the hard subset
+numbers.
 
 ---
 
+
 ## How to reproduce
 
-The analysis runs on the saved predictions, so no GPU or model rerun is needed.
+The analysis runs on the saved predictions, so no GPU or model rerun is needed
+for Option B. Option A's simulation and log parsing also run locally; the stress
+slice eval requires the cluster.
+
+### Option B: grounding cascade
 
 Combined analysis on counting and existence:
 
@@ -498,6 +637,41 @@ python make_qualitative_cards.py \
   --out qualitative_cards --n 10
 ```
 
+### Option A: spatial reasoning
+
+Run the coordinate truncation simulation (no model, no GPU):
+
+```bash
+python3 test_rotation_resolution.py > results/rotation_resolution_output.txt
+```
+
+Parse the baseline eval log for spatial relationship failures:
+
+```bash
+python3 diagnose_spatial.py eval_output_107559.txt \
+  --results-json experiments/SceneCOT_msqa_beacon3d_test_moe/eval_results/QACOTScanNetMSR3D/results.json \
+  --top 20 > results/spatial_failures.txt
+```
+
+Generate the spatial stress test slice from the MSQA test annotations:
+
+```bash
+python3 generate_spatial_test_slice.py \
+  --input data_assets/scenecot_cot_data/MSQA/situated_qa_test_pure_txt.json \
+  --output data/msqa_spatial_stress_test.json
+```
+
+To evaluate on the slice from scratch (requires GPU, model weights, and data
+assets on the cluster), point the annotation directory at the slice and submit:
+
+```bash
+# After symlinking situated_qa_test_pure_txt.json to the slice inside
+# data_assets/msqa_spatial_slice/ (see run_eval_spatial.sh)
+sbatch run_eval_spatial.sh
+```
+
+### Baseline evaluation from scratch
+
 To reproduce the baseline predictions from scratch, `run_eval.sh` runs the full
 SceneCOT evaluation on one GPU and writes the prediction files used above.
 
@@ -505,27 +679,34 @@ SceneCOT evaluation on one GPU and writes the prediction files used above.
 
 ## Repository structure
 
-```
+```text
 EE243_Scenecot_Project/
-  scenecot/                          original SceneCOT codebase (git submodule)
-  experiments/
-    SceneCOT_msqa_beacon3d_test_moe/
-      eval_results/
-        QACOTScanNetMSR3D/results.json    MSQA predictions, 826 questions
-        QACOTScanNetGQA3D/results.json    GQA3D and Beacon3D predictions
-  results/                           spatial experiment outputs (Option A)
-  grounding_cascade_analysis.py      our Option B analysis script
-  make_cascade_chart.py              makes the results chart
-  make_qualitative_cards.py          builds the side by side image cards
-  qualitative_cards/                 generated qualitative result images
-  diagnose_spatial.py                Option A, spatial failure parsing
-  generate_spatial_test_slice.py     Option A, spatial stress test slice
-  test_rotation_resolution.py        Option A, rotation resolution test
-  run_eval.sh                        batch script for the baseline evaluation
-  run_eval_spatial.sh                batch script for the spatial evaluation
-  eval_output_107559.txt             full baseline evaluation log
-  BASELINE_RESULTS.md                baseline numbers and file locations
-  README.md
+├── scenecot/                           # Original SceneCOT codebase (git submodule)
+├── experiments/
+│   └── SceneCOT_msqa_beacon3d_test_moe/
+│       └── eval_results/
+│           ├── QACOTScanNetMSR3D/
+│           │   └── results.json        # MSQA predictions, 826 questions
+│           └── QACOTScanNetGQA3D/
+│               └── results.json        # GQA3D and Beacon3D predictions
+├── data/
+│   └── msqa_spatial_stress_test.json   # 114 question spatial stress slice (generated)
+├── results/
+│   ├── spatial_failures.txt            # Option A, qualitative failure diagnosis
+│   └── rotation_resolution_output.txt  # Option A, truncation simulation output
+├── scene_renders/                      # Option B, 3D render figures
+├── qualitative_cards/                  # Option B, side by side image cards
+├── grounding_cascade_analysis.py       # Option B analysis script
+├── make_cascade_chart.py               # Option B results chart
+├── make_qualitative_cards.py           # Option B qualitative image cards
+├── diagnose_spatial.py                 # Option A, spatial failure parsing
+├── generate_spatial_test_slice.py      # Option A, spatial stress test slice
+├── test_rotation_resolution.py         # Option A, coordinate truncation simulation
+├── run_eval.sh                         # Batch script for baseline evaluation
+├── run_eval_spatial.sh                 # Batch script for spatial slice evaluation
+├── eval_output_107559.txt              # Full baseline evaluation log
+├── cascade_analysis_output.txt         # Option B analysis output
+└── BASELINE_RESULTS.md                 # Baseline numbers summary
 ```
 
 ---
