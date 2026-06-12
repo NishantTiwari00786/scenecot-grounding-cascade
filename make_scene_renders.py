@@ -2,18 +2,21 @@
 """
 make_scene_renders.py
 
-Renders the actual 3D ScanNet scene for cascade examples, with 3D wireframe
-bounding boxes around the object the model wrongly grounded (red) and the correct
-object (green), in the style of the SceneCOT paper figure. Only renders examples
-where BOTH objects exist in the scene.
+Renders cascade examples as smooth reconstructed 3D meshes (paper style), with a
+tight 3D bounding box around EACH instance of the object the model wrongly grounded
+(red) and each instance of the correct object (green). Only renders examples where
+both objects exist in the scene.
 """
 
 import json, os, re, argparse
 import numpy as np
 import torch
+import open3d as o3d
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from matplotlib.lines import Line2D
 
 GROUND_THRESHOLD = 0.5
 STOPWORDS = {
@@ -22,7 +25,7 @@ STOPWORDS = {
     'find','should','list','potential','ground','this','corresponding','it','you',
 }
 
-SCAN_BASE = None  # set from args
+SCAN_BASE = None
 
 
 def parse_obj_prob(text):
@@ -53,7 +56,6 @@ def extract_answer(text):
 
 
 def clean_q(instruction):
-    # Get the actual question: prefer the last sentence ending in '?'.
     q = instruction.split('ASSISTANT')[0].strip()
     sentences = re.split(r'(?<=[.?!])\s+', q)
     questions = [s.strip() for s in sentences if '?' in s]
@@ -73,7 +75,7 @@ def load_scene(scene_id):
     if rgb.max() > 1.5:
         rgb = rgb / 255.0
     rgb = np.clip(rgb, 0, 1)
-    return np.asarray(xyz), rgb, np.asarray(inst), inst_labels
+    return np.asarray(xyz, dtype=float), rgb, np.asarray(inst), inst_labels
 
 
 def find_instance_ids(inst_labels, target_label):
@@ -86,54 +88,64 @@ def find_instance_ids(inst_labels, target_label):
     return ids
 
 
-def _draw_bbox(ax, pts, color):
-    # draw a 3D wireframe bounding box around a cluster, like the SceneCOT paper.
-    if len(pts) < 10:
+def reconstruct_mesh(xyz, rgb01):
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(xyz.astype(np.float64))
+    pcd.colors = o3d.utility.Vector3dVector(rgb01.astype(np.float64))
+    pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.15, max_nn=30))
+    cam = np.array([xyz[:, 0].mean(), xyz[:, 1].mean(), xyz[:, 2].max() + 2.0])
+    pcd.orient_normals_towards_camera_location(cam)
+    mesh, _dens = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(pcd, depth=9)
+    mesh = mesh.crop(pcd.get_axis_aligned_bounding_box())
+    return mesh
+
+
+def draw_bbox_for_instance(ax, pts, color):
+    if len(pts) < 8:
         return
-    mn = pts.min(axis=0)
-    mx = pts.max(axis=0)
-    pad = (mx - mn) * 0.15 + 0.05      # a little breathing room around the object
-    mn = mn - pad
-    mx = mx + pad
-    x0, y0, z0 = mn
-    x1, y1, z1 = mx
-    corners = np.array([
-        [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
-        [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]])
-    edges = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)]
-    for a, b in edges:
-        ax.plot([corners[a,0], corners[b,0]],
-                [corners[a,1], corners[b,1]],
-                [corners[a,2], corners[b,2]], color=color, lw=2.5, zorder=10)
+    mn = pts.min(axis=0); mx = pts.max(axis=0)
+    pad = (mx - mn) * 0.12 + 0.04
+    mn = mn - pad; mx = mx + pad
+    x0, y0, z0 = mn; x1, y1, z1 = mx
+    c = np.array([[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],
+                  [x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]])
+    e = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)]
+    for a, b in e:
+        ax.plot([c[a,0],c[b,0]],[c[a,1],c[b,1]],[c[a,2],c[b,2]],
+                color=color, lw=2.3, zorder=20)
 
 
 def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
-    from matplotlib.lines import Line2D
+    mesh = reconstruct_mesh(xyz, rgb)
+    verts = np.asarray(mesh.vertices)
+    faces = np.asarray(mesh.triangles)
+    vcol = np.asarray(mesh.vertex_colors)
+    if len(verts) == 0 or len(faces) == 0:
+        return False
+
     fig = plt.figure(figsize=(11, 8))
     ax = fig.add_subplot(111, projection='3d')
 
-    # dense room: use the full point cloud, bigger points, so it reads as solid
-    highlight = np.isin(inst, wrong_ids + correct_ids)
-    base = ~highlight
-    base_idx = np.where(base)[0]
-    if len(base_idx) > 80000:
-        base_idx = np.random.choice(base_idx, size=80000, replace=False)
-    ax.scatter(xyz[base_idx, 0], xyz[base_idx, 1], xyz[base_idx, 2],
-               c=rgb[base_idx], s=4, alpha=0.5, linewidths=0, zorder=1)
+    fc = vcol[faces].mean(axis=1) if len(vcol) else None
+    ax.add_collection3d(Poly3DCollection(verts[faces], facecolors=fc,
+                                         edgecolors='none', alpha=1.0, zorder=1))
 
-    # wrong object: faint red points + bold red box
-    w = np.isin(inst, wrong_ids)
-    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#e02424', s=22, alpha=0.9,
-               linewidths=0, zorder=5)
-    _draw_bbox(ax, xyz[w], '#e02424')
+    for iid in wrong_ids:
+        draw_bbox_for_instance(ax, xyz[inst == iid], '#e02424')
+    for iid in correct_ids:
+        draw_bbox_for_instance(ax, xyz[inst == iid], '#1f9d4d')
 
-    # correct object: faint green points + bold green box
-    c = np.isin(inst, correct_ids)
-    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#1f9d4d', s=22, alpha=0.9,
-               linewidths=0, zorder=5)
-    _draw_bbox(ax, xyz[c], '#1f9d4d')
+    ax.set_xlim(verts[:, 0].min(), verts[:, 0].max())
+    ax.set_ylim(verts[:, 1].min(), verts[:, 1].max())
+    ax.set_zlim(verts[:, 2].min(), verts[:, 2].max())
+    ax.view_init(elev=45, azim=-70)
+    ax.set_box_aspect((1, 1, 0.35))
+    ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
+    for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
+        pane.fill = False
+        pane.set_edgecolor('none')
+    ax.grid(False)
 
-    # legend using line handles so it matches the box style
     handles = [
         Line2D([0], [0], color='#e02424', lw=3,
                label=f"model grounded: {info['wrong_label']} (WRONG)"),
@@ -142,29 +154,21 @@ def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
     ]
     ax.legend(handles=handles, loc='upper right', fontsize=11, framealpha=0.92)
 
-    ax.view_init(elev=45, azim=-70)         # looks down into the room like the paper
-    ax.set_box_aspect((1, 1, 0.35))
-    ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
-    for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
-        pane.fill = False
-        pane.set_edgecolor('none')
-    ax.grid(False)
-
     plt.title(info['question'], fontsize=13, weight='bold', pad=10)
-    note = (f"Model grounded '{info['wrong_label']}' (red box) and answered "
-            f"'{info['answer']}'. Correct object '{info['correct_label']}' (green box) "
+    note = (f"Model grounded '{info['wrong_label']}' (red) and answered "
+            f"'{info['answer']}'. Correct object '{info['correct_label']}' (green) "
             f"was present. Correct answer: '{info['correct_answer']}'.  Scene {scene_id}.")
     fig.text(0.5, 0.035, note, ha='center', fontsize=10)
-    plt.savefig(out_path, dpi=160, bbox_inches='tight')
+    plt.savefig(out_path, dpi=150, bbox_inches='tight')
     plt.close()
+    return True
 
 
 def main():
     global SCAN_BASE
     ap = argparse.ArgumentParser()
     ap.add_argument('--results', required=True)
-    ap.add_argument('--scan_base', required=True,
-                    help='path to .../SceneVerse/ScanNet/scan_data')
+    ap.add_argument('--scan_base', required=True)
     ap.add_argument('--out', default='scene_renders')
     ap.add_argument('--n', type=int, default=6)
     args = ap.parse_args()
@@ -213,9 +217,14 @@ def main():
             'correct_answer': ga,
         }
         out_path = os.path.join(args.out, f"scene_{built+1:02d}.png")
-        render(ex['scene_id'], xyz, rgb, inst, wrong_ids, correct_ids, info, out_path)
-        print(f"Built {out_path}: {ex['scene_id']} | grounded '{wrong_label}' vs correct '{correct_label}'")
-        built += 1
+        try:
+            ok = render(ex['scene_id'], xyz, rgb, inst, wrong_ids, correct_ids, info, out_path)
+        except Exception as e:
+            print(f"  skip {ex['scene_id']}: {e}")
+            continue
+        if ok:
+            print(f"Built {out_path}: {ex['scene_id']} | grounded '{wrong_label}' vs correct '{correct_label}'")
+            built += 1
 
     print(f"\nDone. Built {built} scene renders in {args.out}/")
 
