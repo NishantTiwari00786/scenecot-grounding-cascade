@@ -1,0 +1,911 @@
+[warn] results.json has 114 entries but the log has 1305 evaluation blocks; joining by index up to the shorter one.
+
+====================================================================================================
+SPATIAL RELATIONSHIP FAILURE DIAGNOSIS  (eval_spatial_output_107623.txt)
+====================================================================================================
+Total evaluation blocks parsed : 1305
+'spatial relationship' samples       : 42
+Failures (em_flag = 0)         : 35
+Showing top 20 failures
+====================================================================================================
+
+====================================================================================================
+FAILURE #1   (sample index 44)
+====================================================================================================
+Scene ID : scene0231_00
+Question :
+    You are sitting on the chair. To your left, at a middle distance, there's a brown wooden kitchen
+    cabinet and a green cutting board. Far to your front, there's a black poster. What is the
+    spatial relationship between the kitchen cabinet and the microwave at 6 o'clock?
+
+Ground Truth : the microwave is placed within the area of the kitchen cabinet.
+Predicted    : the microwave is supported by the kitchen cabinet.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    microwave: -3.0,-0.7,1.4,0.7,0.2,0.5; prob: 0.93 open kitchen cabinet:
+    -3.2,-0.7,1.8,1.3,0.4,1.1; prob: 0.88 open kitchen cabinet: -3.4,-0.7,1.8,1.3,0.4,0.8; prob:
+    0.88 open kitchen cabinet: -3.1,-0.6,0.5,1.0,0.2,0.9; prob: 0.81 open kitchen cabinet:
+    -3.1,-0.6,0.5,1.0,0.2,0.9; prob: 0.81 open kitchen cabinet: -3.6,0.2,1.8,0.5,1.5,0.9; prob: 0.78
+    open kitchen cabinet: -3.4,0.1,0.5,0.1,1.3,0.9; prob: 0.62 ceiling: -3.7,-0.3,2.6,1.0,1.3,0.3;
+    prob: 0.02 refrigerator: -2.2,-0.5,1.0,1.0,0.5,1.8; prob: 0.01 stack of chairs:
+    -0.1,-0.0,0.5,0.7,0.6,1.0; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The kitchen cabinet and the microwave at 6 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>microwave: -3.0,-0.7,1.4,0.7,0.2,0.5; prob: 0.93 open kitchen cabinet:
+    -3.2,-0.7,1.8,1.3,0.4,1.1; prob: 0.88 open kitchen cabinet: -3.4,-0.7,1.8,1.3,0.4,0.8; prob:
+    0.88 open kitchen cabinet: -3.1,-0.6,0.5,1.0,0.2,0.9; prob: 0.81 open kitchen cabinet:
+    -3.1,-0.6,0.5,1.0,0.2,0.9; prob: 0.81 open kitchen cabinet: -3.6,0.2,1.8,0.5,1.5,0.9; prob: 0.78
+    open kitchen cabinet: -3.4,0.1,0.5,0.1,1.3,0.9; prob: 0.62 ceiling: -3.7,-0.3,2.6,1.0,1.3,0.3;
+    prob: 0.02 refrigerator: -2.2,-0.5,1.0,1.0,0.5,1.8; prob: 0.01 stack of chairs:
+    -0.1,-0.0,0.5,0.7,0.6,1.0; prob: 0.00</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the microwave is supported by the kitchen cabinet.</answer>
+
+====================================================================================================
+FAILURE #2   (sample index 45)
+====================================================================================================
+Scene ID : scene0458_00
+Question :
+    To your right, near you, there's a sealed white bottle. Behind you, at a middle distance,
+    there's an upright orange bottle. What is the relationship between the bottle and the soap dish
+    behind you?
+
+Ground Truth : the bottle is below the soap dish.
+Predicted    : the bottle is above the soap dish.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    container: -1.2,0.6,1.4,0.1,0.1,0.2; prob: 0.83 container: -1.2,0.6,1.4,0.1,0.1,0.2; prob: 0.83
+    stick: -0.6,0.3,0.1,0.5,0.4,0.3; prob: 0.52 container: -0.9,0.2,1.1,0.3,0.3,0.3; prob: 0.32
+    shelf: -0.7,0.2,0.5,0.9,0.9,1.4; prob: 0.02 shelf: -0.7,0.2,0.5,0.9,0.9,1.4; prob: 0.02 trash
+    can: -0.7,-0.2,0.1,0.2,0.3,0.3; prob: 0.01
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The bottle and the soap dish behind me.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>container: -1.2,0.6,1.4,0.1,0.1,0.2; prob: 0.83 container:
+    -1.2,0.6,1.4,0.1,0.1,0.2; prob: 0.83 stick: -0.6,0.3,0.1,0.5,0.4,0.3; prob: 0.52 container:
+    -0.9,0.2,1.1,0.3,0.3,0.3; prob: 0.32 shelf: -0.7,0.2,0.5,0.9,0.9,1.4; prob: 0.02 shelf:
+    -0.7,0.2,0.5,0.9,0.9,1.4; prob: 0.02 trash can: -0.7,-0.2,0.1,0.2,0.3,0.3; prob:
+    0.01</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the bottle is above the soap dish.</answer>
+
+====================================================================================================
+FAILURE #3   (sample index 46)
+====================================================================================================
+Scene ID : scene0153_00
+Question :
+    You are adjusting the water temperature of the sink. There is a green towel hanging at your 8
+    o'clock, and a dark towel hanging at your 7 o'clock. What is the spatial relationship between
+    the shower curtain and the rail at your 8 o'clock?
+
+Ground Truth : the shower curtain is hanging on the rail.
+Predicted    : the shower curtain is above the rail.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    shower curtain: -1.1,1.2,1.2,0.2,1.4,1.7; prob: 0.88 towels: -0.7,1.7,0.9,0.5,0.1,0.6; prob:
+    0.35 towels: -0.7,1.7,0.9,0.5,0.1,0.6; prob: 0.35 towels: -0.7,1.7,0.9,0.5,0.1,0.6; prob: 0.35
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The shower curtain and the rail at your 8 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>shower curtain: -1.1,1.2,1.2,0.2,1.4,1.7; prob: 0.88 towels:
+    -0.7,1.7,0.9,0.5,0.1,0.6; prob: 0.35 towels: -0.7,1.7,0.9,0.5,0.1,0.6; prob: 0.35 towels:
+    -0.7,1.7,0.9,0.5,0.1,0.6; prob: 0.35</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the shower curtain is above the rail.</answer>
+
+====================================================================================================
+FAILURE #4   (sample index 47)
+====================================================================================================
+Scene ID : scene0084_00
+Question :
+    To your left, near you, there's a black jacket. You are opening the trash can lid. What is the
+    relationship between the toilet paper and the window on your right?
+
+Ground Truth : the toilet paper is inside the rail and supported by the toilet paper holder, below the window.
+Predicted    : the toilet paper is below the window.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    window: -0.2,-3.7,1.2,0.3,1.7,1.6; prob: 0.92 toilet paper rolls: 0.2,-3.5,0.5,0.1,0.2,0.2;
+    prob: 0.85 toilet paper rolls: 0.0,-3.5,0.5,0.1,0.2,0.1; prob: 0.84 toilet:
+    0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71 toilet: 0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71 toilet:
+    0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71 bar: 0.2,-3.5,0.8,0.1,1.2,0.1; prob: 0.38 bar:
+    0.9,-2.8,0.8,1.0,0.1,0.1; prob: 0.34 toilet seat cover dispenser: 0.8,-2.2,0.8,0.4,0.1,0.3;
+    prob: 0.11 soap dispenser: 0.2,-0.1,1.1,0.1,0.2,0.3; prob: 0.09 trash can:
+    0.8,-2.6,0.3,0.3,0.1,0.3; prob: 0.02 ceiling: 0.6,-1.5,2.1,0.8,0.7,0.0; prob: 0.02 shower
+    curtain: -0.3,-0.4,0.8,0.1,0.1,0.1; prob: 0.01 bar: 0.7,-0.6,0.8,0.9,0.1,0.1; prob: 0.01 bar:
+    0.7,-0.6,0.8,0.9,0.1,0.1; prob: 0.01 radiator: -0.8,-3.6,0.3,0.1,0.8,0.6; prob: 0.00 radiator:
+    -0.8,-3.6,0.3,0.1,0.8,0.6; prob: 0.00 bar: 0.8,-1.1,1.3,0.1,0.1,0.7; prob: 0.00 shower curtain:
+    -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00 shower curtain: -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00
+    shower curtain: -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00 bin: 0.4,-1.5,0.4,0.6,0.9,0.1; prob: 0.00
+    doorframe: -1.3,-3.6,0.3,0.2,0.3,0.8; prob: 0.00 seating: 0.4,-1.5,0.4,0.6,0.9,0.3; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The toilet paper and the window on my right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>window: -0.2,-3.7,1.2,0.3,1.7,1.6; prob: 0.92 toilet paper rolls:
+    0.2,-3.5,0.5,0.1,0.2,0.2; prob: 0.85 toilet paper rolls: 0.0,-3.5,0.5,0.1,0.2,0.1; prob: 0.84
+    toilet: 0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71 toilet: 0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71
+    toilet: 0.6,-3.0,0.3,0.5,0.6,0.5; prob: 0.71 bar: 0.2,-3.5,0.8,0.1,1.2,0.1; prob: 0.38 bar:
+    0.9,-2.8,0.8,1.0,0.1,0.1; prob: 0.34 toilet seat cover dispenser: 0.8,-2.2,0.8,0.4,0.1,0.3;
+    prob: 0.11 soap dispenser: 0.2,-0.1,1.1,0.1,0.2,0.3; prob: 0.09 trash can:
+    0.8,-2.6,0.3,0.3,0.1,0.3; prob: 0.02 ceiling: 0.6,-1.5,2.1,0.8,0.7,0.0; prob: 0.02 shower
+    curtain: -0.3,-0.4,0.8,0.1,0.1,0.1; prob: 0.01 bar: 0.7,-0.6,0.8,0.9,0.1,0.1; prob: 0.01 bar:
+    0.7,-0.6,0.8,0.9,0.1,0.1; prob: 0.01 radiator: -0.8,-3.6,0.3,0.1,0.8,0.6; prob: 0.00 radiator:
+    -0.8,-3.6,0.3,0.1,0.8,0.6; prob: 0.00 bar: 0.8,-1.1,1.3,0.1,0.1,0.7; prob: 0.00 shower curtain:
+    -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00 shower curtain: -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00
+    shower curtain: -0.3,-1.8,0.8,0.3,0.5,1.9; prob: 0.00 bin: 0.4,-1.5,0.4,0.6,0.9,0.1; prob: 0.00
+    doorframe: -1.3,-3.6,0.3,0.2,0.3,0.8; prob: 0.00 seating: 0.4,-1.5,0.4,0.6,0.9,0.3; prob:
+    0.00</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the toilet paper is below the window.</answer>
+
+====================================================================================================
+FAILURE #5   (sample index 49)
+====================================================================================================
+Scene ID : scene0084_00
+Question :
+    There is a white door with a smooth texture and a rectangular prism shape at your 6 o'clock
+    direction. There is a window in your 11 o'clock direction. What is the spatial relationship
+    between the toilet paper and the rail at 10 o'clock?
+
+Ground Truth : the toilet paper is placed within the area of the rail.
+Predicted    : the toilet paper is below the rail.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    bar: 0.3,0.8,0.8,0.1,1.2,0.1; prob: 0.92 toilet paper rolls: 0.2,0.8,0.5,0.1,0.2,0.2; prob: 0.90
+    toilet paper rolls: 0.2,0.6,0.5,0.1,0.2,0.1; prob: 0.89 radiator: 0.3,-0.3,0.3,0.1,0.8,0.6;
+    prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The toilet paper and the rail at 10 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>bar: 0.3,0.8,0.8,0.1,1.2,0.1; prob: 0.92 toilet paper rolls:
+    0.2,0.8,0.5,0.1,0.2,0.2; prob: 0.90 toilet paper rolls: 0.2,0.6,0.5,0.1,0.2,0.1; prob: 0.89
+    radiator: 0.3,-0.3,0.3,0.1,0.8,0.6; prob: 0.00</obj_loc_prob><think_sum>Now answer the question
+    based on the object probabilities.</think_sum>
+    <answer>the toilet paper is below the rail.</answer>
+
+====================================================================================================
+FAILURE #6   (sample index 52)
+====================================================================================================
+Scene ID : scene0406_00
+Question :
+    You are rolling the towel into a ball. At your 3 o'clock direction, there is a white toilet
+    paper with a soft paper texture for hygiene. There is a black and white counter at your 2
+    o'clock direction, with a smooth ceramic and stone texture, used for washing. What is the
+    spatial relationship between the toilet and the picture at your 4 o'clock?
+
+Ground Truth : the toilet is below the picture.
+Predicted    : the picture is above the toilet.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    pictures: -0.5,-1.2,1.5,0.0,0.4,0.5; prob: 0.92 toilet: -0.6,-0.9,0.4,0.7,0.4,0.8; prob: 0.66
+    towels: -0.6,-1.1,0.8,0.2,0.3,0.1; prob: 0.06 toilet paper rolls: -0.2,-1.1,0.4,0.2,0.7,0.9;
+    prob: 0.01
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The toilet and the picture at your 4 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>pictures: -0.5,-1.2,1.5,0.0,0.4,0.5; prob: 0.92 toilet: -0.6,-0.9,0.4,0.7,0.4,0.8;
+    prob: 0.66 towels: -0.6,-1.1,0.8,0.2,0.3,0.1; prob: 0.06 toilet paper rolls:
+    -0.2,-1.1,0.4,0.2,0.7,0.9; prob: 0.01</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the picture is above the toilet.</answer>
+
+====================================================================================================
+FAILURE #7   (sample index 53)
+====================================================================================================
+Scene ID : scene0645_00
+Question :
+    You are decorating the curtain. To your right, there's also nothing. To your left, near you,
+    there's a brown rectangular fabric pillow with a soft texture, used for cushioning. What is the
+    spatial relationship between the backpack and the ottoman at your 6 o'clock?
+
+Ground Truth : the backpack is behind the ottoman.
+Predicted    : the backpack is placed within the area of the ottoman.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    backpack: -6.0,0.4,0.2,0.3,0.4,0.5; prob: 0.90 backpack: -4.1,-0.7,0.2,0.3,0.3,0.4; prob: 0.89
+    ottoman: -1.5,0.1,0.2,0.8,0.9,0.4; prob: 0.89 pillows: -3.0,0.3,0.5,0.6,0.6,0.2; prob: 0.46
+    suitcases: -5.3,0.6,0.1,0.6,0.9,0.2; prob: 0.36 stack of chairs: -4.4,-0.3,0.5,0.8,0.8,0.9;
+    prob: 0.02 trash can: -5.7,-1.0,0.2,0.5,0.4,0.3; prob: 0.02 couch: -3.0,-0.8,0.5,1.0,2.0,1.0;
+    prob: 0.01 tv: -5.5,1.5,1.4,0.8,0.2,0.5; prob: 0.01 coffee table: -3.0,0.4,0.3,0.7,1.2,0.5;
+    prob: 0.01 trash can: -5.6,-1.1,0.2,0.3,0.4,0.3; prob: 0.01 table: -4.8,-0.9,0.5,0.6,1.2,0.8;
+    prob: 0.01 table: -4.8,-0.9,0.5,0.6,1.2,0.8; prob: 0.01 cabinets: -8.3,0.6,0.8,0.3,0.2,0.6;
+    prob: 0.01 table lamp: -5.1,-1.1,1.3,0.5,0.3,0.3; prob: 0.01 doors: -8.2,-1.1,0.4,0.2,0.4,0.7;
+    prob: 0.00 doors: -8.3,-0.7,0.6,1.1,0.3,1.0; prob: 0.00 doors: -7.2,0.8,0.6,0.1,2.1,1.1; prob:
+    0.00 doors: -7.2,0.8,0.6,0.1,2.1,1.1; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The backpack and the ottoman at your 6 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>backpack: -6.0,0.4,0.2,0.3,0.4,0.5; prob: 0.90 backpack:
+    -4.1,-0.7,0.2,0.3,0.3,0.4; prob: 0.89 ottoman: -1.5,0.1,0.2,0.8,0.9,0.4; prob: 0.89 pillows:
+    -3.0,0.3,0.5,0.6,0.6,0.2; prob: 0.46 suitcases: -5.3,0.6,0.1,0.6,0.9,0.2; prob: 0.36 stack of
+    chairs: -4.4,-0.3,0.5,0.8,0.8,0.9; prob: 0.02 trash can: -5.7,-1.0,0.2,0.5,0.4,0.3; prob: 0.02
+    couch: -3.0,-0.8,0.5,1.0,2.0,1.0; prob: 0.01 tv: -5.5,1.5,1.4,0.8,0.2,0.5; prob: 0.01 coffee
+    table: -3.0,0.4,0.3,0.7,1.2,0.5; prob: 0.01 trash can: -5.6,-1.1,0.2,0.3,0.4,0.3; prob: 0.01
+    table: -4.8,-0.9,0.5,0.6,1.2,0.8; prob: 0.01 table: -4.8,-0.9,0.5,0.6,1.2,0.8; prob: 0.01
+    cabinets: -8.3,0.6,0.8,0.3,0.2,0.6; prob: 0.01 table lamp: -5.1,-1.1,1.3,0.5,0.3,0.3; prob: 0.01
+    doors: -8.2,-1.1,0.4,0.2,0.4,0.7; prob: 0.00 doors: -8.3,-0.7,0.6,1.1,0.3,1.0; prob: 0.00 doors:
+    -7.2,0.8,0.6,0.1,2.1,1.1; prob: 0.00 doors: -7.2,0.8,0.6,0.1,2.1,1.1; prob:
+    0.00</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the backpack is placed within the area of the ottoman.</answer>
+
+====================================================================================================
+FAILURE #8   (sample index 55)
+====================================================================================================
+Scene ID : scene0653_00
+Question :
+    In front of you, there's a black wooden desk with smooth texture and a brown wooden monitor with
+    a flat screen. To your right, near you, there's a black monitor. What is the spatial
+    relationship between the office chair and the desk at your 8 o'clock?
+
+Ground Truth : the office chair supports the desk.
+Predicted    : the office chair is placed within the area of the desk.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    desk: -0.9,3.2,0.7,0.8,1.6,0.8; prob: 0.80 office chair: -2.0,2.6,0.5,0.7,0.7,1.0; prob: 0.60
+    office chair: -0.6,1.4,0.5,0.7,0.7,1.0; prob: 0.58 monitor: -1.2,3.4,1.1,0.4,0.5,0.5; prob: 0.31
+    monitor: -0.9,3.0,1.1,0.2,0.6,0.4; prob: 0.29 cabinets: -1.3,1.9,0.2,0.4,0.4,0.3; prob: 0.03
+    laptop: -1.3,2.7,0.8,0.3,0.6,0.1; prob: 0.01
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The office chair and the desk at your 8 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>desk: -0.9,3.2,0.7,0.8,1.6,0.8; prob: 0.80 office chair: -2.0,2.6,0.5,0.7,0.7,1.0;
+    prob: 0.60 office chair: -0.6,1.4,0.5,0.7,0.7,1.0; prob: 0.58 monitor: -1.2,3.4,1.1,0.4,0.5,0.5;
+    prob: 0.31 monitor: -0.9,3.0,1.1,0.2,0.6,0.4; prob: 0.29 cabinets: -1.3,1.9,0.2,0.4,0.4,0.3;
+    prob: 0.03 laptop: -1.3,2.7,0.8,0.3,0.6,0.1; prob: 0.01</obj_loc_prob><think_sum>Now answer the
+    question based on the object probabilities.</think_sum>
+    <answer>the office chair is placed within the area of the desk.</answer>
+
+====================================================================================================
+FAILURE #9   (sample index 56)
+====================================================================================================
+Scene ID : scene0221_00
+Question :
+    In front of you, near, there's a brown wooden ledge. To your left, near you, there's a white
+    plastic bag with a smooth texture. What is the relationship between the mirror and the
+    nightstand near you on your right?
+
+Ground Truth : the mirror is placed on the cabinet.
+Predicted    : the mirror is supported by the nightstand.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    nightstand: -1.8,-2.5,0.3,0.5,0.6,0.6; prob: 0.84 bed: -0.9,-1.4,0.4,2.1,1.6,1.0; prob: 0.13
+    mirror: 1.4,-1.7,1.1,0.8,0.1,0.2; prob: 0.03
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The mirror and the nightstand near me on my right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>nightstand: -1.8,-2.5,0.3,0.5,0.6,0.6; prob: 0.84 bed: -0.9,-1.4,0.4,2.1,1.6,1.0;
+    prob: 0.13 mirror: 1.4,-1.7,1.1,0.8,0.1,0.2; prob: 0.03</obj_loc_prob><think_sum>Now answer the
+    question based on the object probabilities.</think_sum>
+    <answer>the mirror is supported by the nightstand.</answer>
+
+====================================================================================================
+FAILURE #10   (sample index 57)
+====================================================================================================
+Scene ID : scene0593_00
+Question :
+    To your left, at a middle distance, there's a white plastic printer for printing documents. In
+    front of you, at a middle distance, there's a white metal mailbox for mail collection and a
+    brown wooden door as an entrance. What is the relationship between the mailboxes and the cabinet
+    on your right?
+
+Ground Truth : the mailboxes are placed on the cabinet.
+Predicted    : the mailboxes are supported by the cabinet.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    cabinets: -0.4,-2.0,0.4,2.1,0.8,0.9; prob: 0.84 cabinets: -0.4,-2.0,0.4,2.1,0.8,0.9; prob: 0.84
+    mailbox: -0.4,-2.0,1.3,2.2,0.7,1.8; prob: 0.81 table: 1.2,-3.6,0.4,0.9,0.4,0.6; prob: 0.58
+    copier: -1.8,-1.8,0.7,0.8,2.5,1.1; prob: 0.32 couch: 1.5,-2.2,0.4,1.8,0.9,0.8; prob: 0.04 couch:
+    1.5,-2.2,0.4,1.8,0.9,0.8; prob: 0.04 pictures: 0.6,-3.7,1.4,0.1,1.1,1.1; prob: 0.04 backpack:
+    1.7,-1.9,0.6,0.5,0.5,0.3; prob: 0.02 whiteboard: -2.0,-2.5,1.4,0.1,2.0,1.3; prob: 0.01
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The mailboxes and the cabinet on my right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>cabinets: -0.4,-2.0,0.4,2.1,0.8,0.9; prob: 0.84 cabinets:
+    -0.4,-2.0,0.4,2.1,0.8,0.9; prob: 0.84 mailbox: -0.4,-2.0,1.3,2.2,0.7,1.8; prob: 0.81 table:
+    1.2,-3.6,0.4,0.9,0.4,0.6; prob: 0.58 copier: -1.8,-1.8,0.7,0.8,2.5,1.1; prob: 0.32 couch:
+    1.5,-2.2,0.4,1.8,0.9,0.8; prob: 0.04 couch: 1.5,-2.2,0.4,1.8,0.9,0.8; prob: 0.04 pictures:
+    0.6,-3.7,1.4,0.1,1.1,1.1; prob: 0.04 backpack: 1.7,-1.9,0.6,0.5,0.5,0.3; prob: 0.02 whiteboard:
+    -2.0,-2.5,1.4,0.1,2.0,1.3; prob: 0.01</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the mailboxes are supported by the cabinet.</answer>
+
+====================================================================================================
+FAILURE #11   (sample index 58)
+====================================================================================================
+Scene ID : scene0606_00
+Question :
+    There is a blue bin for waste disposal, a black picture in a frame, and a brown object
+    resembling a basket at your 11 o'clock. There is a dark shades table at your 1 o'clock. What is
+    the relationship between the chair and the table on your left?
+
+Ground Truth : the chair is near the table.
+Predicted    : the chair is placed within the area of the table.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    table: 1.2,-0.5,0.6,1.6,1.9,1.0; prob: 0.94 stack of chairs: 0.9,0.2,0.4,0.8,0.7,1.0; prob: 0.92
+    stack of chairs: -0.8,1.1,0.5,0.7,0.7,0.9; prob: 0.79 table: 0.5,1.8,0.8,0.5,3.1,0.2; prob: 0.08
+    backpack: -0.9,1.1,0.2,0.6,0.5,0.2; prob: 0.03 table: 0.8,1.8,0.8,0.5,3.1,0.2; prob: 0.02 boxes:
+    -0.2,1.9,0.4,0.6,0.8,0.7; prob: 0.01 table: 2.0,1.7,0.5,0.6,3.3,0.8; prob: 0.01 book:
+    2.0,1.8,0.9,0.2,0.4,0.3; prob: 0.00 stick: 1.4,2.0,1.0,0.2,1.1,0.3; prob: 0.00 stools:
+    0.3,1.9,0.2,0.5,0.4,0.4; prob: 0.00 mini fridge: -0.6,1.8,0.5,0.2,0.6,0.7; prob: 0.00 microwave:
+    -0.4,1.9,1.0,0.4,0.6,0.4; prob: 0.00 microwave: 0.1,1.9,1.0,0.4,0.5,0.5; prob: 0.00 boxes:
+    -0.1,1.9,0.3,0.4,0.4,0.4; prob: 0.00 printer: 2.4,1.7,0.9,0.3,0.5,0.3; prob: 0.00 plant:
+    -1.1,1.6,1.5,1.1,1.1,1.7; prob: 0.00 plant: -1.1,1.6,1.5,1.1,1.1,1.7; prob: 0.00 pictures:
+    -0.2,2.2,1.8,0.1,0.6,0.6; prob: 0.00 window: 1.5,2.2,1.6,0.3,2.5,1.3; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The chair and the table on your left.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>table: 1.2,-0.5,0.6,1.6,1.9,1.0; prob: 0.94 stack of chairs:
+    0.9,0.2,0.4,0.8,0.7,1.0; prob: 0.92 stack of chairs: -0.8,1.1,0.5,0.7,0.7,0.9; prob: 0.79 table:
+    0.5,1.8,0.8,0.5,3.1,0.2; prob: 0.08 backpack: -0.9,1.1,0.2,0.6,0.5,0.2; prob: 0.03 table:
+    0.8,1.8,0.8,0.5,3.1,0.2; prob: 0.02 boxes: -0.2,1.9,0.4,0.6,0.8,0.7; prob: 0.01 table:
+    2.0,1.7,0.5,0.6,3.3,0.8; prob: 0.01 book: 2.0,1.8,0.9,0.2,0.4,0.3; prob: 0.00 stick:
+    1.4,2.0,1.0,0.2,1.1,0.3; prob: 0.00 stools: 0.3,1.9,0.2,0.5,0.4,0.4; prob: 0.00 mini fridge:
+    -0.6,1.8,0.5,0.2,0.6,0.7; prob: 0.00 microwave: -0.4,1.9,1.0,0.4,0.6,0.4; prob: 0.00 microwave:
+    0.1,1.9,1.0,0.4,0.5,0.5; prob: 0.00 boxes: -0.1,1.9,0.3,0.4,0.4,0.4; prob: 0.00 printer:
+    2.4,1.7,0.9,0.3,0.5,0.3; prob: 0.00 plant: -1.1,1.6,1.5,1.1,1.1,1.7; prob: 0.00 plant:
+    -1.1,1.6,1.5,1.1,1.1,1.7; prob: 0.00 pictures: -0.2,2.2,1.8,0.1,0.6,0.6; prob: 0.00 window:
+    1.5,2.2,1.6,0.3,2.5,1.3; prob: 0.00</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the chair is placed within the area of the table.</answer>
+
+====================================================================================================
+FAILURE #12   (sample index 59)
+====================================================================================================
+Scene ID : scene0412_00
+Question :
+    In front of you, there's a silver ladder and a cluttered varied table. You are sorting trash
+    into the trash can. What is the spatial relationship between the rack and the boxes at 7
+    o'clock?
+
+Ground Truth : the rack is supporting the boxes.
+Predicted    : the rack is above the boxes.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    printer: -1.6,0.5,0.6,0.5,1.1,1.0; prob: 0.88 doors: -0.4,0.6,0.9,0.6,0.6,1.6; prob: 0.75
+    cabinets: 0.0,1.6,0.5,1.0,2.4,1.1; prob: 0.73
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The rack and the boxes at 7 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>printer: -1.6,0.5,0.6,0.5,1.1,1.0; prob: 0.88 doors: -0.4,0.6,0.9,0.6,0.6,1.6;
+    prob: 0.75 cabinets: 0.0,1.6,0.5,1.0,2.4,1.1; prob: 0.73</obj_loc_prob><think_sum>Now answer the
+    question based on the object probabilities.</think_sum>
+    <answer>the rack is above the boxes.</answer>
+
+====================================================================================================
+FAILURE #13   (sample index 60)
+====================================================================================================
+Scene ID : scene0426_00
+Question :
+    To your right, near you, there's a pink canvas picture hanged on the wall. At the back, near
+    you, there's a black fabric instrument case with green and blue speckles. What is the spatial
+    relationship between the jacket and the chair at your 5 o'clock?
+
+Ground Truth : the jacket is on the chair.
+Predicted    : the jacket is placed within the area of the chair.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    stack of chairs: -0.8,-0.4,0.4,0.6,0.7,0.9; prob: 0.84 clothing: -0.7,-0.6,0.6,0.3,0.6,0.7;
+    prob: 0.79 doors: -1.6,-0.4,1.0,0.9,0.1,1.8; prob: 0.02
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The jacket and the chair at your 5 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>stack of chairs: -0.8,-0.4,0.4,0.6,0.7,0.9; prob: 0.84 clothing:
+    -0.7,-0.6,0.6,0.3,0.6,0.7; prob: 0.79 doors: -1.6,-0.4,1.0,0.9,0.1,1.8; prob:
+    0.02</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the jacket is placed within the area of the chair.</answer>
+
+====================================================================================================
+FAILURE #14   (sample index 61)
+====================================================================================================
+Scene ID : scene0046_00
+Question :
+    You are putting items in the backpack. Behind you, near, there are variegated greens and blues
+    curtains partially open and a black & white suitcase open & partially packed. What is the
+    spatial relationship between the chair and the shoes at your 3 o'clock?
+
+Ground Truth : the chair is to the left of the shoes.
+Predicted    : the chair is beside the shoes.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    stack of chairs: 0.0,-0.9,0.4,0.6,0.7,0.8; prob: 0.87 shoe: 0.4,-1.8,0.0,0.4,0.4,0.1; prob: 0.85
+    shoe: 0.5,-2.7,0.0,0.4,0.7,0.2; prob: 0.69 shoe: 0.5,-2.7,0.0,0.4,0.7,0.2; prob: 0.69 cabinets:
+    0.2,-2.2,0.3,0.5,0.7,0.5; prob: 0.56 laptop: -0.1,-1.7,0.8,0.3,0.3,0.2; prob: 0.02 desk:
+    -0.5,-1.3,0.5,0.7,1.3,0.8; prob: 0.02 doors: 1.7,-4.1,1.1,0.1,1.2,2.3; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The chair and the shoes at your 3 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>stack of chairs: 0.0,-0.9,0.4,0.6,0.7,0.8; prob: 0.87 shoe:
+    0.4,-1.8,0.0,0.4,0.4,0.1; prob: 0.85 shoe: 0.5,-2.7,0.0,0.4,0.7,0.2; prob: 0.69 shoe:
+    0.5,-2.7,0.0,0.4,0.7,0.2; prob: 0.69 cabinets: 0.2,-2.2,0.3,0.5,0.7,0.5; prob: 0.56 laptop:
+    -0.1,-1.7,0.8,0.3,0.3,0.2; prob: 0.02 desk: -0.5,-1.3,0.5,0.7,1.3,0.8; prob: 0.02 doors:
+    1.7,-4.1,1.1,0.1,1.2,2.3; prob: 0.00</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the chair is beside the shoes.</answer>
+
+====================================================================================================
+FAILURE #15   (sample index 62)
+====================================================================================================
+Scene ID : scene0574_00
+Question :
+    Behind you, near, there's a beige and brown fabric and wood bench and a beige wooden clothes
+    hanger. In front of you, near, there's a white fabric towel and a varied ceramic and metal soap
+    dish. What is the spatial relationship between the iron and the ironing board at 7 o'clock?
+
+Ground Truth : the iron is higher than the ironing board.
+Predicted    : the iron is placed within the area of the ironing board.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    ledge: -1.0,0.5,1.4,0.3,0.5,0.4; prob: 0.88 light: -0.7,0.6,1.7,0.2,0.2,0.3; prob: 0.78 towels:
+    -0.7,0.7,0.9,0.1,0.4,1.6; prob: 0.76 table: -1.1,0.4,0.3,0.8,0.5,0.6; prob: 0.12
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The iron and the ironing board at 7 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>ledge: -1.0,0.5,1.4,0.3,0.5,0.4; prob: 0.88 light: -0.7,0.6,1.7,0.2,0.2,0.3; prob:
+    0.78 towels: -0.7,0.7,0.9,0.1,0.4,1.6; prob: 0.76 table: -1.1,0.4,0.3,0.8,0.5,0.6; prob:
+    0.12</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the iron is placed within the area of the ironing board.</answer>
+
+====================================================================================================
+FAILURE #16   (sample index 63)
+====================================================================================================
+Scene ID : scene0389_00
+Question :
+    You are opening the door. In your 12 o'clock direction, there is a partially open white door. At
+    your 7 o'clock direction, there is a black with red accent backpack. What is the relationship
+    between the bag and the bag near you on your right?
+
+Ground Truth : the bag behind the other bag.
+Predicted    : they are next to each other.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    (empty)
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The bag and the bag near you on your right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <list_obj_prob>
+    <think_sum>Now answer the question based on the object probabilities.</think_sum>
+    <answer>they are next to each other.</answer><think_type>This is a spatial relationship
+    question, so I need to ground the corresponding objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The bag and the bag near you on your right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <list_obj_prob>
+    <think_sum>Now answer the question based on the object probabilities.</think_sum>
+    <answer>they are beside each other.</answer>
+
+====================================================================================================
+FAILURE #17   (sample index 64)
+====================================================================================================
+Scene ID : scene0389_00
+Question :
+    At 4 o'clock, a white and blue bed and a colorful picture on the wall. In your 5 o'clock
+    direction, there is a brown and olive green chair made of wood and fabric, and a black tv. What
+    is the relationship between the lamp and the nightstand near you on your right?
+
+Ground Truth : the lamp is above the nightstand.
+Predicted    : the lamp is supported by the nightstand.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    nightstand: -0.1,-0.9,0.3,0.5,0.5,0.6; prob: 0.95 table lamp: 0.1,-0.7,1.3,0.3,0.2,0.3; prob:
+    0.94 trash can: 0.1,-0.4,0.2,0.3,0.4,0.4; prob: 0.01 doors: -0.5,-4.5,1.5,0.1,1.6,2.4; prob:
+    0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The lamp and the nightstand near me on my right.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>nightstand: -0.1,-0.9,0.3,0.5,0.5,0.6; prob: 0.95 table lamp:
+    0.1,-0.7,1.3,0.3,0.2,0.3; prob: 0.94 trash can: 0.1,-0.4,0.2,0.3,0.4,0.4; prob: 0.01 doors:
+    -0.5,-4.5,1.5,0.1,1.6,2.4; prob: 0.00</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the lamp is supported by the nightstand.</answer>
+
+====================================================================================================
+FAILURE #18   (sample index 66)
+====================================================================================================
+Scene ID : scene0607_00
+Question :
+    You are checking the temperature of the refrigerator. Behind you, at a middle distance, there's
+    a black plastic and metal chair with a curved shape and an upright state. To your left, there's
+    a silver metal faucet. What is the relationship between the sink and the kitchen counter?
+
+Ground Truth : the sink is inside the kitchen counter.
+Predicted    : the sink is placed within the area of the kitchen counter.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    sink: 0.9,1.2,0.9,0.5,0.9,0.2; prob: 0.96 sink: 0.9,1.2,0.9,0.5,0.9,0.2; prob: 0.96 kitchen
+    counter: 0.8,1.5,0.9,0.7,2.3,0.4; prob: 0.95 open kitchen cabinet: 0.7,1.5,0.7,0.7,2.3,1.1;
+    prob: 0.11 table: -1.5,1.6,0.9,1.3,2.7,0.9; prob: 0.06 paper towel dispenser:
+    1.1,1.3,1.3,0.1,0.3,0.4; prob: 0.02 paper towel dispenser: 1.1,1.3,1.3,0.1,0.3,0.4; prob: 0.02
+    mirror: 1.0,1.1,1.1,0.1,0.1,0.4; prob: 0.02 soap dispenser: 1.0,0.6,1.3,0.1,0.2,0.3; prob: 0.00
+    stack of chairs: -1.0,1.5,0.8,0.5,0.5,0.4; prob: 0.00 stack of chairs: -0.9,2.4,0.8,0.5,0.5,0.4;
+    prob: 0.00 stacks of cups: 0.9,0.5,1.0,0.4,0.3,0.1; prob: 0.00 stacks of cups:
+    0.9,0.5,1.0,0.4,0.3,0.1; prob: 0.00 stack of chairs: -1.9,1.7,0.8,0.6,0.5,0.5; prob: 0.00 stacks
+    of cups: 1.0,0.6,1.0,0.2,0.2,0.1; prob: 0.00 doors: 0.7,3.2,0.9,0.3,0.9,1.4; prob: 0.00 stack of
+    chairs: -2.1,0.9,0.8,0.5,0.5,0.4; prob: 0.00 window: 0.0,-0.7,0.8,0.2,0.4,1.4; prob: 0.00
+    doorframe: 0.7,3.5,0.9,0.2,0.2,1.3; prob: 0.00 stack of chairs: -1.9,2.5,0.8,0.6,0.6,0.5; prob:
+    0.00 window: 0.7,3.4,1.1,0.2,0.7,1.1; prob: 0.00 window: 0.7,3.4,1.1,0.2,0.7,1.1; prob: 0.00
+    cabinets: 0.1,3.9,1.2,1.4,0.1,1.3; prob: 0.00
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The sink and the kitchen counter.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>sink: 0.9,1.2,0.9,0.5,0.9,0.2; prob: 0.96 sink: 0.9,1.2,0.9,0.5,0.9,0.2; prob:
+    0.96 kitchen counter: 0.8,1.5,0.9,0.7,2.3,0.4; prob: 0.95 open kitchen cabinet:
+    0.7,1.5,0.7,0.7,2.3,1.1; prob: 0.11 table: -1.5,1.6,0.9,1.3,2.7,0.9; prob: 0.06 paper towel
+    dispenser: 1.1,1.3,1.3,0.1,0.3,0.4; prob: 0.02 paper towel dispenser: 1.1,1.3,1.3,0.1,0.3,0.4;
+    prob: 0.02 mirror: 1.0,1.1,1.1,0.1,0.1,0.4; prob: 0.02 soap dispenser: 1.0,0.6,1.3,0.1,0.2,0.3;
+    prob: 0.00 stack of chairs: -1.0,1.5,0.8,0.5,0.5,0.4; prob: 0.00 stack of chairs:
+    -0.9,2.4,0.8,0.5,0.5,0.4; prob: 0.00 stacks of cups: 0.9,0.5,1.0,0.4,0.3,0.1; prob: 0.00 stacks
+    of cups: 0.9,0.5,1.0,0.4,0.3,0.1; prob: 0.00 stack of chairs: -1.9,1.7,0.8,0.6,0.5,0.5; prob:
+    0.00 stacks of cups: 1.0,0.6,1.0,0.2,0.2,0.1; prob: 0.00 doors: 0.7,3.2,0.9,0.3,0.9,1.4; prob:
+    0.00 stack of chairs: -2.1,0.9,0.8,0.5,0.5,0.4; prob: 0.00 window: 0.0,-0.7,0.8,0.2,0.4,1.4;
+    prob: 0.00 doorframe: 0.7,3.5,0.9,0.2,0.2,1.3; prob: 0.00 stack of chairs:
+    -1.9,2.5,0.8,0.6,0.6,0.5; prob: 0.00 window: 0.7,3.4,1.1,0.2,0.7,1.1; prob: 0.00 window:
+    0.7,3.4,1.1,0.2,0.7,1.1; prob: 0.00 cabinets: 0.1,3.9,1.2,1.4,0.1,1.3; prob:
+    0.00</obj_loc_prob><think_sum>Now answer the question based on the object
+    probabilities.</think_sum>
+    <answer>the sink is placed within the area of the kitchen counter.</answer>
+
+====================================================================================================
+FAILURE #19   (sample index 68)
+====================================================================================================
+Scene ID : scene0690_00
+Question :
+    There are light brown cabinet and cream book in your 10 o'clock and 9 o'clock directions. There
+    is a cream chair in your 12 o'clock direction. What is the spatial relationship between the
+    table and the armchair at 1 o'clock?
+
+Ground Truth : the table is in front of the armchair.
+Predicted    : the table is beside the armchair.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    coffee table: 1.3,-1.0,0.3,0.9,1.2,0.5; prob: 0.86 armchair: 0.1,-0.0,0.5,1.1,0.9,0.9; prob:
+    0.82 armchair: 2.6,-1.2,0.5,1.1,1.0,0.9; prob: 0.81 end table: 2.4,-2.2,0.4,0.7,0.6,0.6; prob:
+    0.77
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The table and the armchair at 1 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>coffee table: 1.3,-1.0,0.3,0.9,1.2,0.5; prob: 0.86 armchair:
+    0.1,-0.0,0.5,1.1,0.9,0.9; prob: 0.82 armchair: 2.6,-1.2,0.5,1.1,1.0,0.9; prob: 0.81 end table:
+    2.4,-2.2,0.4,0.7,0.6,0.6; prob: 0.77</obj_loc_prob><think_sum>Now answer the question based on
+    the object probabilities.</think_sum>
+    <answer>the table is beside the armchair.</answer>
+
+====================================================================================================
+FAILURE #20   (sample index 69)
+====================================================================================================
+Scene ID : scene0690_00
+Question :
+    You are sitting on the armchair. There is a light brown chair in your 8 o'clock direction. A
+    brown leather couch is at your 12 o'clock, and two book at 4 o'clock. What is the spatial
+    relationship between the book and the cabinet at 3 o'clock?
+
+Ground Truth : the book is placed within the area of the cabinet and below another book.
+Predicted    : the book is placed within the area of the cabinet.
+
+--- CoT: <think_type> ---
+    This is a spatial relationship question, so I need to ground the corresponding objects first.
+--- CoT: <think_task> ---
+    Now I need to list all the locations and probabilities of the potential objects.
+--- CoT: <obj_loc_prob> (agent-relative x,y,z,w,h,d + prob) ---
+    cabinets: -0.4,-2.7,1.3,0.9,3.4,2.2; prob: 0.80 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70
+    shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70 shelf:
+    0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70 armchair: 0.0,-0.1,0.5,1.1,0.9,0.9; prob: 0.06 coffee
+    table: 1.6,-0.5,0.3,0.9,1.2,0.5; prob: 0.05
+--- CoT: <think_rgn> ---
+    Now I need to list all the objects in the sub-region related to the question.
+
+--- Full raw CoT (de-tokenized) ---
+    <think_type>This is a spatial relationship question, so I need to ground the corresponding
+    objects first.</think_type>
+    <think_rgn>Now I need to list all the objects in the sub-region related to the
+    question.</think_rgn>
+    <list_rgn_obj>
+    <think_grd>Ground the object: The book and the cabinet at 3 o'clock.</think_grd>
+    [OBJ]
+    <think_task>Now I need to list all the locations and probabilities of the potential
+    objects.</think_task>
+    <list_obj_loc_prob>
+    <obj_loc_prob>cabinets: -0.4,-2.7,1.3,0.9,3.4,2.2; prob: 0.80 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6;
+    prob: 0.70 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob:
+    0.70 shelf: 0.0,-3.3,1.5,0.8,1.4,1.6; prob: 0.70 armchair: 0.0,-0.1,0.5,1.1,0.9,0.9; prob: 0.06
+    coffee table: 1.6,-0.5,0.3,0.9,1.2,0.5; prob: 0.05</obj_loc_prob><think_sum>Now answer the
+    question based on the object probabilities.</think_sum>
+    <answer>the book is placed within the area of the cabinet.</answer>
+
+====================================================================================================
+... 15 more failures not shown (use --top 35 to see all).
+====================================================================================================
