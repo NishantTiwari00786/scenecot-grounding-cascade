@@ -2,10 +2,10 @@
 """
 make_scene_renders.py
 
-Renders the actual 3D ScanNet scene for cascade examples in a clean angled 3D
-view, highlighting the object the model wrongly grounded (bold red) and the
-correct object (bold green) in the real room. Only renders examples where BOTH
-objects exist in the scene, so every image shows the contrast.
+Renders the actual 3D ScanNet scene for cascade examples, with 3D wireframe
+bounding boxes around the object the model wrongly grounded (red) and the correct
+object (green), in the style of the SceneCOT paper figure. Only renders examples
+where BOTH objects exist in the scene.
 """
 
 import json, os, re, argparse
@@ -53,8 +53,7 @@ def extract_answer(text):
 
 
 def clean_q(instruction):
-    # Get the actual question: prefer the last sentence ending in '?', so the
-    # title does not start mid-sentence like "trol and privacy...".
+    # Get the actual question: prefer the last sentence ending in '?'.
     q = instruction.split('ASSISTANT')[0].strip()
     sentences = re.split(r'(?<=[.?!])\s+', q)
     questions = [s.strip() for s in sentences if '?' in s]
@@ -87,47 +86,64 @@ def find_instance_ids(inst_labels, target_label):
     return ids
 
 
-def _draw_ring(ax, pts, color):
-    # draw a ring around a compact cluster to help the eye find it.
-    if len(pts) < 20:
+def _draw_bbox(ax, pts, color):
+    # draw a 3D wireframe bounding box around a cluster, like the SceneCOT paper.
+    if len(pts) < 10:
         return
-    cx, cy, cz = pts[:, 0].mean(), pts[:, 1].mean(), pts[:, 2].mean()
-    spread = np.percentile(np.linalg.norm(pts[:, :2] - [cx, cy], axis=1), 90)
-    if spread > 1.2:          # cluster too spread out, a ring would look wrong
-        return
-    r = max(0.3, spread * 1.4)
-    theta = np.linspace(0, 2 * np.pi, 60)
-    ax.plot(cx + r * np.cos(theta), cy + r * np.sin(theta), cz,
-            color=color, lw=2.0, alpha=0.85, zorder=6)
+    mn = pts.min(axis=0)
+    mx = pts.max(axis=0)
+    pad = (mx - mn) * 0.15 + 0.05      # a little breathing room around the object
+    mn = mn - pad
+    mx = mx + pad
+    x0, y0, z0 = mn
+    x1, y1, z1 = mx
+    corners = np.array([
+        [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+        [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]])
+    edges = [(0,1),(1,2),(2,3),(3,0),(4,5),(5,6),(6,7),(7,4),(0,4),(1,5),(2,6),(3,7)]
+    for a, b in edges:
+        ax.plot([corners[a,0], corners[b,0]],
+                [corners[a,1], corners[b,1]],
+                [corners[a,2], corners[b,2]], color=color, lw=2.5, zorder=10)
 
 
 def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
+    from matplotlib.lines import Line2D
     fig = plt.figure(figsize=(11, 8))
     ax = fig.add_subplot(111, projection='3d')
 
+    # dense room: use the full point cloud, bigger points, so it reads as solid
     highlight = np.isin(inst, wrong_ids + correct_ids)
     base = ~highlight
     base_idx = np.where(base)[0]
-    if len(base_idx) > 45000:
-        base_idx = np.random.choice(base_idx, size=45000, replace=False)
+    if len(base_idx) > 80000:
+        base_idx = np.random.choice(base_idx, size=80000, replace=False)
     ax.scatter(xyz[base_idx, 0], xyz[base_idx, 1], xyz[base_idx, 2],
-               c=rgb[base_idx], s=2.5, alpha=0.30, linewidths=0, zorder=1)
+               c=rgb[base_idx], s=4, alpha=0.5, linewidths=0, zorder=1)
 
+    # wrong object: faint red points + bold red box
     w = np.isin(inst, wrong_ids)
-    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#e02424', s=42, alpha=1.0,
-               edgecolors='#5a0000', linewidths=0.4, zorder=5,
-               label=f"model grounded: {info['wrong_label']} (WRONG)")
-    _draw_ring(ax, xyz[w], '#e02424')
+    ax.scatter(xyz[w, 0], xyz[w, 1], xyz[w, 2], c='#e02424', s=22, alpha=0.9,
+               linewidths=0, zorder=5)
+    _draw_bbox(ax, xyz[w], '#e02424')
 
+    # correct object: faint green points + bold green box
     c = np.isin(inst, correct_ids)
-    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#1f9d4d', s=42, alpha=1.0,
-               edgecolors='#003313', linewidths=0.4, zorder=5,
-               label=f"correct object: {info['correct_label']}")
-    _draw_ring(ax, xyz[c], '#1f9d4d')
+    ax.scatter(xyz[c, 0], xyz[c, 1], xyz[c, 2], c='#1f9d4d', s=22, alpha=0.9,
+               linewidths=0, zorder=5)
+    _draw_bbox(ax, xyz[c], '#1f9d4d')
 
-    ax.view_init(elev=38, azim=-72)
-    ax.set_box_aspect((1, 1, 0.32))
-    ax.legend(loc='upper right', fontsize=11, framealpha=0.92)
+    # legend using line handles so it matches the box style
+    handles = [
+        Line2D([0], [0], color='#e02424', lw=3,
+               label=f"model grounded: {info['wrong_label']} (WRONG)"),
+        Line2D([0], [0], color='#1f9d4d', lw=3,
+               label=f"correct object: {info['correct_label']}"),
+    ]
+    ax.legend(handles=handles, loc='upper right', fontsize=11, framealpha=0.92)
+
+    ax.view_init(elev=45, azim=-70)         # looks down into the room like the paper
+    ax.set_box_aspect((1, 1, 0.35))
     ax.set_xticks([]); ax.set_yticks([]); ax.set_zticks([])
     for pane in (ax.xaxis.pane, ax.yaxis.pane, ax.zaxis.pane):
         pane.fill = False
@@ -135,8 +151,8 @@ def render(scene_id, xyz, rgb, inst, wrong_ids, correct_ids, info, out_path):
     ax.grid(False)
 
     plt.title(info['question'], fontsize=13, weight='bold', pad=10)
-    note = (f"Model grounded '{info['wrong_label']}' (red) and answered "
-            f"'{info['answer']}'. Correct object '{info['correct_label']}' (green) "
+    note = (f"Model grounded '{info['wrong_label']}' (red box) and answered "
+            f"'{info['answer']}'. Correct object '{info['correct_label']}' (green box) "
             f"was present. Correct answer: '{info['correct_answer']}'.  Scene {scene_id}.")
     fig.text(0.5, 0.035, note, ha='center', fontsize=10)
     plt.savefig(out_path, dpi=160, bbox_inches='tight')
