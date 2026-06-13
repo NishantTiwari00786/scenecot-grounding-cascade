@@ -16,8 +16,6 @@ Coordinates are in METERS, so ":.1f" snaps every axis to a 10 cm grid before
 the string ever reaches the LLM decoder. This script feeds in object pairs
 that are 5-20 cm apart and shows how the truncation collapses or distorts
 their relative arrangement.
-
-No torch / no GPU required: the math below is a faithful pure-Python replica.
 """
 
 import math
