@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Structural Limitation in SceneCOT's Grounded Reasoning</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5c5c5c;
+    --faint: #8a8a8a;
+    --link: #1559b8;
+    --link-hover: #0d3d82;
+    --rule: #e2e2e2;
+    --bg: #ffffff;
+    --panel: #fafafa;
+    --wrong: #c0392b;
+    --right: #1f9d4d;
+    --accent-soft: #eef3fb;
+    --maxw: 820px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 18px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* sticky nav */
+  nav.sticky {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--rule);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  nav.sticky .inner {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    align-items: center;
+  }
+  nav.sticky a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13.5px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  nav.sticky a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* header */
+  header.hero {
+    text-align: center;
+    padding: 58px 24px 30px;
+    border-bottom: 1px solid var(--rule);
+  }
+  header.hero h1 {
+    font-size: 33px;
+    line-height: 1.25;
+    font-weight: 700;
+    margin: 0 0 18px;
+    letter-spacing: -0.01em;
+  }
+  .authors {
+    font-size: 19px;
+    margin: 0 0 6px;
+  }
+  .authors a { color: var(--link); text-decoration: none; }
+  .authors a:hover { text-decoration: underline; }
+  .affil {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    color: var(--muted);
+    margin: 2px 0 4px;
+  }
+  .venue {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 16px;
+    margin: 4px 0 20px;
+  }
+  .paper-title-ref { font-style: italic; }
+
+  /* link buttons */
+  .links {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-size: 15px;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  }
+  .links a:hover { background: #f0f0f0; border-color: #cfcfcf; transform: translateY(-1px); }
+  .links a .ic { width: 17px; height: 17px; display: inline-block; }
+
+  /* sections */
+  section { padding: 40px 0 6px; }
+  section h2 {
+    font-size: 25px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+    scroll-margin-top: 64px;
+  }
+  .eyebrow {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 12.5px;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 0 0 4px;
+  }
+  section h2 + p { margin-top: 14px; }
+  .rule { height: 1px; background: var(--rule); margin: 34px 0 0; border: 0; }
+
+  p { margin: 0 0 18px; }
+  .lead { font-size: 19px; }
+  strong { font-weight: 700; }
+  code {
+    font-family: 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.84em;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  a.inline { color: var(--link); text-decoration: none; }
+  a.inline:hover { text-decoration: underline; }
+
+  .wrong-txt { color: var(--wrong); font-weight: 700; }
+  .right-txt { color: var(--right); font-weight: 700; }
+
+  /* pipeline diagram */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 26px 0 30px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    flex-wrap: wrap;
+  }
+  .pstep {
+    flex: 1 1 0;
+    min-width: 130px;
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 14px 14px 16px;
+    position: relative;
+    text-align: center;
+  }
+  .pstep.ground {
+    border-color: #f0c9c2;
+    background: #fdf3f1;
+  }
+  .pstep .pnum {
+    font-size: 12px;
+    color: var(--faint);
+    letter-spacing: 0.1em;
+  }
+  .pstep .pname { font-weight: 700; font-size: 15px; margin: 3px 0 5px; }
+  .pstep .pdesc { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+  .parrow {
+    align-self: center;
+    color: var(--faint);
+    font-size: 20px;
+    padding: 0 6px;
+    flex: 0 0 auto;
+  }
+  .pipeline-note {
+    font-size: 14px;
+    color: var(--muted);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    text-align: center;
+    margin-top: -10px;
+  }
+  .pipeline-note .wrong-txt { font-weight: 700; }
+
+  /* collapsible */
+  details.collapse {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin: 0 0 14px;
+    background: var(--bg);
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  details.collapse[open] { border-color: #d2d2d2; box-shadow: 0 2px 14px rgba(0,0,0,0.04); }
+  details.collapse > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    transition: background 0.12s;
+  }
+  details.collapse > summary:hover { background: var(--panel); }
+  details.collapse > summary::-webkit-details-marker { display: none; }
+  .lin-thumb {
+    flex: 0 0 92px;
+    height: 66px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #eef3fb 0%, #e6eefb 100%);
+    border: 1px solid var(--rule);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--link);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    text-align: center;
+    line-height: 1.2;
+    padding: 4px;
+  }
+  .lin-head { flex: 1; }
+  .lin-title {
+    font-weight: 700;
+    font-size: 17.5px;
+    color: var(--link);
+    margin: 0 0 2px;
+    line-height: 1.3;
+  }
+  .lin-venue {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: var(--faint);
+    margin: 0 0 5px;
+  }
+  .lin-catch {
+    font-style: italic;
+    color: var(--muted);
+    font-size: 15.5px;
+    margin: 0;
+  }
+  .lin-chev {
+    flex: 0 0 auto;
+    align-self: center;
+    color: var(--faint);
+    font-size: 13px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    transition: transform 0.2s;
+  }
+  details.collapse[open] > summary .lin-chev { transform: rotate(90deg); }
+  .lin-body {
+    padding: 4px 22px 20px;
+    border-top: 1px solid var(--rule);
+    margin-top: -1px;
+  }
+  .lin-body p { font-size: 16.5px; margin: 16px 0 0; }
+  .lin-body .leftq {
+    margin-top: 16px;
+    padding: 10px 14px;
+    background: var(--panel);
+    border-left: 3px solid var(--rule);
+    border-radius: 0 6px 6px 0;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  /* generic collapsible (non-lineage) */
+  details.fold {
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    margin: 16px 0;
+    background: var(--bg);
+  }
+  details.fold[open] { box-shadow: 0 2px 14px rgba(0,0,0,0.04); }
+  details.fold > summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    font-size: 15.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary:hover { background: var(--panel); }
+  details.fold > summary .fold-chev { color: var(--faint); font-size: 13px; transition: transform 0.2s; }
+  details.fold[open] > summary .fold-chev { transform: rotate(90deg); }
+  .fold-body { padding: 4px 22px 18px; border-top: 1px solid var(--rule); }
+  .fold-body p:first-child { margin-top: 16px; }
+
+  /* tables */
+  .tablewrap { overflow-x: auto; margin: 20px 0 24px; }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14.5px;
+  }
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+  th {
+    font-weight: 700;
+    border-bottom: 2px solid #d0d0d0;
+    background: var(--panel);
+  }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody tr:hover { background: var(--panel); }
+  .row-cascade td { background: #fdf3f1; }
+  .row-cascade:hover td { background: #fbece9; }
+
+  /* figures */
+  .figure { margin: 28px 0; }
+  .figure img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--panel);
+  }
+  .figure figcaption {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color: var(--muted);
+    margin-top: 10px;
+    line-height: 1.55;
+  }
+  .figure figcaption b { color: var(--ink); }
+  .figgrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin: 26px 0;
+  }
+  .figgrid .figure { margin: 0; }
+  @media (max-width: 640px) { .figgrid { grid-template-columns: 1fr; } }
+
+  /* findings callout */
+  .finding {
+    border-left: 4px solid var(--ink);
+    padding: 2px 0 2px 18px;
+    margin: 22px 0;
+  }
+  .finding h4 {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .finding.f-ground { border-left-color: var(--wrong); }
+  .finding.f-gap { border-left-color: var(--link); }
+
+  .callout {
+    background: var(--accent-soft);
+    border: 1px solid #d6e2f4;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 22px 0;
+    font-size: 16.5px;
+  }
+  .callout strong { color: var(--link-hover); }
+
+  ul.clean { padding-left: 22px; margin: 0 0 18px; }
+  ul.clean li { margin-bottom: 8px; }
+
+  footer {
+    margin-top: 50px;
+    border-top: 1px solid var(--rule);
+    padding: 30px 24px 60px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 15px;
+  }
+  footer .links { margin-bottom: 18px; }
+
+  .placeholder {
+    background: #fff8e6;
+    border: 1px dashed #e6c34a;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-size: 14.5px;
+    color: #8a6d1a;
+    margin: 16px 0;
+  }
+
+  @media (max-width: 600px) {
+    body { font-size: 17px; }
+    header.hero h1 { font-size: 26px; }
+    .pipeline { flex-direction: column; }
+    .parrow { transform: rotate(90deg); padding: 4px 0; }
+    nav.sticky .inner { gap: 2px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- STICKY NAV -->
+<nav class="sticky">
+  <div class="inner">
+    <a href="#overview">Overview</a>
+    <a href="#pipeline">How it works</a>
+    <a href="#lineage">Lineage</a>
+    <a href="#limitation">Limitation</a>
+    <a href="#results">Results</a>
+    <a href="#qualitative">Visuals</a>
+    <a href="#spatial">Spatial</a>
+    <a href="#repro">Reproduce</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="wrap">
+    <h1>A Structural Limitation in SceneCOT's Grounded Reasoning</h1>
+    <p class="authors">
+      <a href="#">Nishant Tiwari</a> &nbsp;&middot;&nbsp;
+      <a href="#">Simarpal Singh</a>
+    </p>
+    <p class="affil">EE 243 Advanced Computer Vision &middot; University of California, Riverside &middot; Spring 2026</p>
+    <p class="venue">An analysis of <span class="paper-title-ref">SceneCOT: Eliciting Grounded Chain-of-Thought Reasoning in 3D Scenes</span> (ICLR 2026)</p>
+
+    <div class="links">
+      <a href="https://github.com/NishantTiwari00786/EE243_Scenecot_Project" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.8c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+        Code on GitHub
+      </a>
+      <a href="https://www.youtube.com/watch?v=GQELvez59c0" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+        Video walkthrough
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <p class="eyebrow">Overview</p>
+    <h2>What we found</h2>
+    <p class="lead">
+      SceneCOT answers questions about 3D rooms by reasoning in four fixed steps, and a
+      middle step called <em>grounding</em> is supposed to point to the specific object
+      the question is about. We reproduce SceneCOT's evaluation, then expose a
+      <strong>structural limitation</strong>: the four steps run in a strict sequence with
+      no way to check or correct the grounding step, so any grounding error is final and
+      flows straight into the answer.
+    </p>
+    <p>
+      On the two most grounding-dependent question types, the large majority of wrong
+      answers come from this exact failure, and a large share of the model's
+      <em>correct</em> answers are produced without correct grounding, which means its
+      accuracy overstates how much it actually understands the scene. This is not a claim
+      that the model simply makes mistakes. The point is about the <strong>design</strong>:
+      SceneCOT commits to a single grounding result at inference with no recovery mechanism,
+      and we show empirically that this is where its failures concentrate.
+    </p>
+    <p>
+      We also identify a <strong>second bottleneck</strong> at a different stage of the
+      pipeline (spatial representation). Even when the model grounds the right objects,
+      spatial-relationship questions fail far more often than existence questions. We trace
+      this to how SceneCOT passes spatial information to the language model: object
+      coordinates are rounded to a ten-centimeter grid before the model reads them, which
+      destroys the fine geometry needed for relations like "in front of" or "within the
+      area of." The course asked for depth over breadth, so we studied these two
+      bottlenecks carefully with both quantitative and qualitative evidence.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- PIPELINE -->
+  <section id="pipeline">
+    <p class="eyebrow">How SceneCOT works</p>
+    <h2>Four steps, run in order</h2>
+    <p>
+      SceneCOT is built on the LLaVA-1.5 vision-language model. For every question it runs
+      four steps in a fixed order, and each step consumes the output of the previous one.
+    </p>
+
+    <div class="pipeline">
+      <div class="pstep">
+        <div class="pnum">STEP 1</div>
+        <div class="pname">Task recognition</div>
+        <div class="pdesc">Decides the question type (counting, existence, spatial&hellip;), which controls the later steps.</div>
+      </div>
+      <div class="parrow">&rarr;</div>
+      <div class="pstep">
+        <div class="pnum">STEP 2</div>
+        <div class="pname">Region localization</div>
+        <div class="pdesc">A rule-based engine restricts the scene to the relevant area using directions and clock positions.</div>
+      </div>
+      <div class="parrow">&rarr;</div>
+      <div class="pstep ground">
+        <div class="pnum">STEP 3</div>
+        <div class="pname">Entity grounding</div>
+        <div class="pdesc">Mask3D proposes objects; a PQ3D module scores them into an <code>obj_prob</code> list. <b>Our focus.</b></div>
+      </div>
+      <div class="parrow">&rarr;</div>
+      <div class="pstep">
+        <div class="pnum">STEP 4</div>
+        <div class="pname">Grounded reasoning</div>
+        <div class="pdesc">Builds a clue from the grounded objects and produces the final answer from <em>only</em> that clue.</div>
+      </div>
+    </div>
+    <p class="pipeline-note">
+      Because the steps are sequential, step 4 only ever sees what step 3 grounded.
+      A <span class="wrong-txt">grounding error</span> in step 3 cannot be undone later.
+    </p>
+
+    <p>
+      How grounding actually works, in detail: an off-the-shelf 3D instance segmenter,
+      <strong>Mask3D</strong>, breaks the room into candidate object proposals. The grounding
+      module, based on <strong>PQ3D</strong>, then scores each proposal for how well it
+      matches the question and emits an object-probability list. In the saved reasoning
+      chain this shows up as an <code>&lt;obj_prob&gt;</code> section, for example
+      <code>book 0.75 boxes 0.64 desk 0.63</code>. The objects with high probability are taken
+      as "the objects the model grounded." The geometry math (clock directions, distances) is
+      computed by fixed rules, not learned, so the spatial math itself is exact. The strength
+      the paper emphasizes is grounding-QA coherence, getting grounding and answer correct
+      together.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- LINEAGE -->
+  <section id="lineage">
+    <p class="eyebrow">Research lineage</p>
+    <h2>The four papers SceneCOT builds on</h2>
+    <p>
+      Each earlier line of work solved part of the problem and left something open. Click any
+      paper to read our full discussion of what it contributed and where it fell short.
+    </p>
+
+    <!-- CoT -->
+    <details class="collapse">
+      <summary>
+        <div class="lin-thumb">Chain&#8209;of&#8209;Thought</div>
+        <div class="lin-head">
+          <p class="lin-title">Chain-of-Thought Prompting</p>
+          <p class="lin-venue">Wei et al., 2022 &middot; arXiv:2201.11903</p>
+          <p class="lin-catch">Taught models to reason step by step before answering, but only in text.</p>
+        </div>
+        <div class="lin-chev">&#9654;</div>
+      </summary>
+      <div class="lin-body">
+        <p>
+          Before Chain-of-Thought prompting, simply scaling large language models still failed
+          on multi-step reasoning, symbolic logic, and complex arithmetic. In the standard
+          zero-shot setup the model attempts a direct mapping from input to output, forcing all
+          of the multi-step deduction into a single forward pass, which led to high hallucination
+          and logical errors.
+        </p>
+        <p>
+          The paper introduced a step-by-step reasoning chain before the final answer, mimicking
+          human deduction. Instead of optimizing P(y|x), it effectively optimizes P(y, z|x),
+          where z is the sequence of intermediate steps. By giving few-shot examples that include
+          step-by-step breakdowns, the model is conditioned to spend more computation on the
+          problem. This worked especially well on models above roughly 100B parameters and
+          sharply improved accuracy on benchmarks like GSM8K and SVAMP, with no fine-tuning,
+          architecture changes, or task-specific gradients.
+        </p>
+        <p class="leftq">
+          <strong>What it left open:</strong> the method is constrained to 1D text tokens. It has
+          no embedding space for spatial geometry, 3D point clouds, or visual grounding. SceneCOT
+          bridges this gap by mapping physical 3D coordinate logic into a sequential reasoning
+          framework.
+        </p>
+      </div>
+    </details>
+
+    <!-- PQ3D -->
+    <details class="collapse">
+      <summary>
+        <div class="lin-thumb">PQ3D</div>
+        <div class="lin-head">
+          <p class="lin-title">PQ3D: Promptable Queries for Unified 3D</p>
+          <p class="lin-venue">2024 &middot; arXiv:2405.11442</p>
+          <p class="lin-catch">Unified many 3D inputs and tasks in one architecture, but answers in a single pass.</p>
+        </div>
+        <div class="lin-chev">&#9654;</div>
+      </summary>
+      <div class="lin-body">
+        <p>
+          Most 3D vision-language models were heavily fragmented: different raw inputs (point
+          clouds, multi-view 2D images) needed separate encoding pipelines, and tasks like
+          segmentation and question answering needed hard-coded, task-specific output heads.
+        </p>
+        <p>
+          PQ3D introduced a unified architecture. It projects various 3D representations into a
+          shared 3D coordinate space via unsupervised segment-level grouping. The core engine is
+          an attention-based query decoder that takes promptable queries (text, bounding boxes,
+          even image sketches) and extracts task-relevant features from the unified 3D space.
+          Those features pass through universal output heads that simultaneously predict instance
+          masks, relevance scores, and text. It is computationally efficient and set records
+          across ten datasets (including a 13.4% CIDEr boost on Scan2Cap and strong gains on
+          ScanNet200). Its ability to handle zero-shot novel prompt types, like using a 2D sketch
+          to segment a 3D object, shows the representation alignment is robust. SceneCOT reuses
+          PQ3D as its grounding module.
+        </p>
+        <p class="leftq">
+          <strong>What it left open:</strong> the attention step is excellent at extracting
+          features from a prompt, but it operates in a single direct-mapping step. It cannot
+          handle recursive logic, so when a prompt requires navigating a complex spatial
+          dependency, PQ3D struggles to break it down.
+        </p>
+      </div>
+    </details>
+
+    <!-- Chat-Scene -->
+    <details class="collapse">
+      <summary>
+        <div class="lin-thumb">Chat&#8209;Scene</div>
+        <div class="lin-head">
+          <p class="lin-title">Chat-Scene</p>
+          <p class="lin-venue">NeurIPS 2024 &middot; arXiv:2312.08168</p>
+          <p class="lin-catch">Turned scenes into object tokens an LLM can read, but depends on the detector being right.</p>
+        </div>
+        <div class="lin-chev">&#9654;</div>
+      </summary>
+      <div class="lin-body">
+        <p>
+          Training multimodal LLMs for 3D environments is bottlenecked by the scarcity of
+          high-quality 3D scene-language data. Feeding raw 3D point-cloud embeddings directly into
+          an LLM often loses granular, object-level semantic clarity, making it hard to ground
+          text to specific items in a cluttered room.
+        </p>
+        <p>
+          Chat-Scene bypasses raw geometry by relying on object identifiers. It uses 3D detectors
+          like Mask3D to decompose a scene into discrete object proposals, then assigns a set of
+          learnable tokens to each object, augmented with rich 2D multi-view features from models
+          like DINOv2. This turns continuous 3D space into a discrete sequence of object-level
+          tokens that an LLM like Vicuna can ingest. By forcing the LLM to interact with discrete
+          object tokens rather than raw scenes, it achieves very high accuracy on object
+          referencing and 3D grounding, ranking first on ScanRefer and Scan2Cap. SceneCOT inherits
+          this detector-proposal style of grounding.
+        </p>
+        <p class="leftq">
+          <strong>What it left open:</strong> heavy reliance on the initial 3D object proposals is
+          a double-edged sword. If the upstream detector misses an object or merges two objects,
+          the LLM cannot recover, because it lacks access to the raw spatial context. It also lacks
+          a structured mechanism for deep, multi-hop spatial deduction. This is exactly the
+          inherited weakness our experiment measures.
+        </p>
+      </div>
+    </details>
+
+    <!-- LEO -->
+    <details class="collapse">
+      <summary>
+        <div class="lin-thumb">LEO</div>
+        <div class="lin-head">
+          <p class="lin-title">LEO: An Embodied Generalist Agent</p>
+          <p class="lin-venue">ICML 2024 &middot; arXiv:2311.12871</p>
+          <p class="lin-catch">Unified perception, reasoning, and action, but is weak on deep step-by-step deduction.</p>
+        </div>
+        <div class="lin-chev">&#9654;</div>
+      </summary>
+      <div class="lin-body">
+        <p>
+          Most earlier LLMs and VLMs are passive observers: they can describe a scene but cannot
+          operate within it. Embodied AI needs a model that processes egocentric first-person
+          views, understands global 3D topology, and outputs commands to interact with the
+          environment.
+        </p>
+        <p>
+          LEO is an embodied, multimodal generalist agent. It fuses egocentric 2D images, global
+          3D point clouds, and text instructions. The architecture uses a decoder-only LLM (tuned
+          via LoRA) trained in two stages: 3D vision-language alignment, then
+          vision-language-action instruction tuning. The LLM's vocabulary is expanded to include
+          physical action tokens alongside text tokens. LEO unifies perception, reasoning, and
+          planning into a single autoregressive sequence and shows that LLMs can output valid,
+          executable action tokens for robotic manipulation and navigation, reaching
+          state-of-the-art on embodied navigation.
+        </p>
+        <p class="leftq">
+          <strong>What it left open:</strong> LEO struggles with rigorous step-by-step analytical
+          depth. Its objective is optimized for broad, generalized embodied actions, so when faced
+          with a complex static 3D reasoning query that requires tracking multiple geometric
+          constraints rather than moving toward a goal, its logic can break down.
+        </p>
+      </div>
+    </details>
+
+    <p style="margin-top:22px;">
+      The common gap: none of the four combine step-by-step reasoning with explicit object
+      grounding. SceneCOT fills it. But it inherits the detector-dependence of PQ3D and
+      Chat-Scene, so its grounding is only as good as the Mask3D proposals and PQ3D scoring, with
+      no mechanism to recover when grounding is wrong. Our experiment measures the consequence of
+      that inherited weakness inside SceneCOT's sequential design.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- LIMITATION -->
+  <section id="limitation">
+    <p class="eyebrow">The limitation, stated precisely</p>
+    <h2>Why a grounding error is unrecoverable</h2>
+    <p>SceneCOT's reasoning chain is sequential and committed. At inference time:</p>
+    <ul class="clean">
+      <li>The grounding module produces one object-probability list and the pipeline proceeds with it.</li>
+      <li><strong>There is no ground truth available at inference.</strong> The model cannot check its own grounding against a correct answer, because at runtime there is none. It has only its own scores.</li>
+      <li><strong>There is no later step that revisits grounding.</strong> Step 4 reasons over whatever step 3 produced and emits an answer.</li>
+    </ul>
+    <div class="callout">
+      Put together, a grounding error in step 3 is <strong>structurally unrecoverable</strong>:
+      the model has no signal that it grounded the wrong object and no stage in which it could
+      correct course. The wrong object propagates into the answer. We call this propagation a
+      <strong>grounding cascade</strong>.
+    </div>
+    <p>
+      This is the precise sense in which it is a limitation of the architecture, not just model
+      imperfection. A different design, one that grounds several candidates and reasons over
+      alternatives, or that flags low confidence and re-grounds, could in principle recover.
+      SceneCOT's straight-through sequential design cannot. We also measure the reverse: the
+      fraction of <em>correct</em> answers produced <em>without</em> correct grounding. When that
+      fraction is large, raw accuracy overstates how much the model truly grounds its answers. We
+      are careful that this is the accuracy-versus-grounding gap, not the paper's coherence metric.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- DATASET + BASELINE + METHOD (folded detail) -->
+  <section id="setup">
+    <p class="eyebrow">Setup</p>
+    <h2>Data, baseline, and method</h2>
+    <p>
+      Everything below the surface, folded so the page stays readable. Open any panel for the full
+      detail.
+    </p>
+
+    <details class="fold">
+      <summary><span>Datasets: what SceneCOT trains on and what we evaluate</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          <strong>Training data, SceneCOT-185K.</strong> About 185,000 examples, each carrying a
+          full step-by-step reasoning chain (the genuinely new part). It combines 145.6K from
+          <strong>MSQA</strong> (an existing situated-reasoning benchmark built on real ScanNet
+          rooms) and 40K from <strong>GQA3D</strong> (object-centric pairs the authors
+          auto-generated with GPT-4o). The 3D scenes themselves are ScanNet; the authors reused
+          ScanNet and added the reasoning chains and GQA3D questions rather than collecting new
+          scenes.
+        </p>
+        <p>
+          <strong>What we actually evaluate on: the MSQA test split.</strong> The MSQA annotations
+          are bundled inside SceneCOT's released data at
+          <code>data_assets/scenecot_cot_data/MSQA</code>; we did not download or build MSQA
+          ourselves. The eval script points at it through the <code>SCENECOT_MSR3D_ANNO_DIR</code>
+          variable. Each MSQA entry places an agent at a position and orientation in a real ScanNet
+          room and asks about nearby objects, recording the scene id, the pose, the question type,
+          and the ground-truth reasoning chain (which includes the objects that should be
+          grounded). The test split spans nine question types; our cascade study uses counting and
+          existence.
+        </p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Type</th><th class="num">Count</th><th>Why we chose it</th></tr></thead>
+            <tbody>
+              <tr><td>Counting</td><td class="num">133</td><td>Requires finding and enumerating the right objects, so grounding directly determines the count</td></tr>
+              <tr><td>Existence</td><td class="num">96</td><td>Requires finding the object to say whether it is present</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          That is 229 questions; 190 were <strong>evaluable</strong> (132 counting, 58 existence)
+          after dropping questions whose ground-truth chain had no grounded object to compare
+          against. The "objects that should have been grounded" are used only as an after-the-fact
+          measuring stick; the model never sees them at inference, which is exactly why the
+          limitation is structural.
+        </p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary><span>Part 1: reproducing the baseline</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          We ran SceneCOT's full grounded-QA evaluation on an NVIDIA RTX A6000. The run loaded the
+          LLaVA backbone, the PQ3D grounding module, and the trained weights, then answered every
+          test question and scored itself, taking about three hours and forty-seven minutes. For
+          every question it saved the question, the correct answer, and its full reasoning chain
+          including the <code>&lt;obj_prob&gt;</code> grounding section and the final answer. The
+          MSQA predictions file holds 826 questions. These confirmed our setup before we did
+          anything of our own.
+        </p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Metric</th><th class="num">Score</th></tr></thead>
+            <tbody>
+              <tr><td>Overall (em_refined)</td><td class="num">52.1%</td></tr>
+              <tr><td>Existence</td><td class="num">65.4%</td></tr>
+              <tr><td>Spatial</td><td class="num">51.3%</td></tr>
+              <tr><td>Appearance</td><td class="num">47.1%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          <code>em_refined</code> is refined exact match, comparing predicted and correct answers
+          after light text cleanup so minor formatting differences are not penalized.
+        </p>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary><span>Part 2 + method: how the cascade analysis works</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          The baseline tells us how often the model is right but not why it is wrong. The key
+          realization is that the saved chains already contain the grounding step's
+          <code>&lt;obj_prob&gt;</code> list, so we can see which objects the model chose and compare
+          them to the objects it should have chosen, entirely from the saved predictions with no GPU
+          and no model rerun. Our analysis asks two things: when an answer is wrong, did the failure
+          start in grounding or in reasoning; and when an answer is right, was it actually grounded.
+        </p>
+        <p>The analysis sorts every question using two yes/no facts:</p>
+        <ul class="clean">
+          <li><strong>Parse the grounding list.</strong> Pull the <code>&lt;obj_prob&gt;</code> objects and confidences, filtering out non-object stopwords.</li>
+          <li><strong>Threshold at 0.5.</strong> An object counts as grounded only above 0.5 confidence; the same parse runs on the ground-truth chain.</li>
+          <li><strong>Lenient grounding-correct rule.</strong> Grounding is correct if the model grounded at least one of the correct object types (set intersection). A stricter rule would only make grounding look worse, so our cascade numbers are conservative.</li>
+          <li><strong>Normalize the answer.</strong> Strip stray unicode so a noisy "four" matches a clean "four".</li>
+        </ul>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th>Answer right</th><th>Answer wrong</th></tr></thead>
+            <tbody>
+              <tr><th>Grounding right</th><td>Correct (pipeline worked)</td><td>Reasoning failure</td></tr>
+              <tr><th>Grounding wrong</th><td>Correct answer without correct grounding</td><td>Cascade</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <hr class="rule">
+
+  <!-- RESULTS -->
+  <section id="results">
+    <p class="eyebrow">Quantitative results</p>
+    <h2>Where the answers come from</h2>
+    <p>
+      Built from the 190 evaluable counting and existence questions (132 counting, 58 existence).
+    </p>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Category</th><th class="num">Counting (n=132)</th><th class="num">Existence (n=58)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Right grounding, right answer</td><td class="num">8 (6.1%)</td><td class="num">19 (32.8%)</td></tr>
+          <tr class="row-cascade"><td>Wrong grounding, wrong answer (cascade)</td><td class="num">61 (46.2%)</td><td class="num">15 (25.9%)</td></tr>
+          <tr><td>Wrong grounding, right answer</td><td class="num">48 (36.4%)</td><td class="num">24 (41.4%)</td></tr>
+          <tr><td>Right grounding, wrong answer (reasoning)</td><td class="num">15 (11.4%)</td><td class="num">0 (0.0%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="finding f-ground">
+      <h4>Finding 1 &middot; Failures concentrate in grounding, and the design makes them final</h4>
+      <p style="margin:0;">
+        Of all wrong answers, <strong>83.5%</strong> trace back to wrong grounding (80.3% for
+        counting, 100% for existence). A wrong answer is either a cascade (wrong grounding) or a
+        reasoning failure (right grounding, wrong answer anyway), and the percentage is cascades
+        divided by all wrong answers. For existence, all 15 wrong answers were cascades and none
+        were reasoning failures, so 100%. For counting, 61 of 76 wrong answers were cascades, so
+        80.3%. Because the pipeline never revisits grounding, these errors propagate straight to the
+        answer. That is the cascade, and it is the dominant failure mode.
+      </p>
+    </div>
+
+    <p>
+      One detail worth reading off the table: on counting the "right grounding, right answer" group
+      is tiny, only 8 of 132. That is partly because grounding on counting is genuinely hard (the
+      model rarely grounds every correct object) and partly because counting is hard even when
+      grounding is right, which the reasoning-failure row (15 of 132) shows directly.
+    </p>
+
+    <div class="finding f-gap">
+      <h4>Finding 2 &middot; Many correct answers are not grounded, so accuracy overstates understanding</h4>
+      <p style="margin:0;">
+        On counting, <strong>36.4%</strong> of answers were correct even though the model grounded
+        the wrong object. Counting has many possible answers, so this is not the coincidence a
+        yes/no guess could produce. The model often lands on the right number while looking at the
+        wrong objects. This is the gap between answer accuracy and correct grounding, and it is not
+        the paper's coherence metric: it shows raw accuracy is an inflated picture of how grounded
+        the answers really are.
+      </p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- QUALITATIVE -->
+  <section id="qualitative">
+    <p class="eyebrow">Qualitative results</p>
+    <h2>Seeing the cascade in the real scenes</h2>
+    <p>
+      For cascade examples we render the actual ScanNet room and draw a
+      <span class="wrong-txt">red box</span> around the object the model wrongly grounded and a
+      <span class="right-txt">green box</span> around the correct object. If the grounding error is
+      real, the red box sits on the wrong object while the green box sits on the object the question
+      was actually about.
+    </p>
+
+    <details class="fold">
+      <summary><span>Why these renders are reconstructed, not the paper's smooth scenes</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          The SceneCOT paper shows smooth, textured 3D rooms. We could not reproduce that exact look
+          because the released data
+          (<code>SceneVerse/ScanNet/scan_data/pcd_with_global_alignment</code>) contains point clouds
+          only: for each scene we get XYZ coordinates, RGB color, and a per-point instance id, but no
+          surface mesh (no faces or triangles). The paper's smooth figures use the original ScanNet
+          textured meshes, which are not part of this release.
+        </p>
+        <p>
+          Getting those meshes is not a quick step. The full ScanNet dataset is gated behind a signed
+          terms-of-use agreement, the download is on the order of a terabyte, and it would then need
+          its own processing pipeline to align and render. That was outside the scope and time of this
+          project. So instead we wrote our own renderer that (1) loads the point cloud and
+          instance-to-label dictionary, (2) runs Poisson surface reconstruction via Open3D to turn the
+          raw points into a continuous surface, (3) finds the instance ids matching the grounded and
+          correct objects and draws a tight 3D box around each, and (4) renders from an angled view.
+          Because we reconstruct the surface from points rather than using a real mesh, the surfaces
+          are bumpy in places and some boxes are loose. We show them as honest reconstructed evidence,
+          not polished paper figures.
+        </p>
+      </div>
+    </details>
+
+    <div class="figgrid">
+      <figure class="figure">
+        <img src="scene_renders/scene_01.png" alt="Book cascade render">
+        <figcaption><b>Figure 1.</b> "Is there a book at your 5 o'clock?" The model grounded <span class="wrong-txt">boxes</span> instead of <span class="right-txt">book</span> and answered no, when the answer was yes.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="scene_renders/scene_02.png" alt="Cup cascade render">
+        <figcaption><b>Figure 2.</b> "Is there a cup to the left of the shelf on your right?" The model grounded <span class="wrong-txt">bookshelves</span> instead of <span class="right-txt">cup</span> and answered no, when the answer was yes.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="scene_renders/scene_03.png" alt="Display case cascade render">
+        <figcaption><b>Figure 3.</b> "Is there a display case on your right?" The model grounded <span class="wrong-txt">plant</span> instead of <span class="right-txt">display case</span> and answered no, when the answer was yes.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="scene_renders/scene_04.png" alt="Chairs cascade render, middle distance">
+        <figcaption><b>Figure 4.</b> "How many chairs are in the middle distance behind you?" The model grounded <span class="wrong-txt">armchair</span> instead of <span class="right-txt">chair</span>, so it counted the wrong set of objects.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="scene_renders/scene_05.png" alt="Chairs cascade render, second view">
+        <figcaption><b>Figure 5.</b> A second view of the same merged-chairs failure mode, where the grounded object does not line up with the individual chairs the question asks about.</figcaption>
+      </figure>
+      <figure class="figure">
+        <img src="scene_renders/scene_06.png" alt="Chairs cascade render, 11 o'clock">
+        <figcaption><b>Figure 6.</b> "How many chairs are at your 11 o'clock?" The clearest counting cascade: grounding returned a single merged <span class="wrong-txt">stack of chairs</span> rather than separate <span class="right-txt">chairs</span>, so the model could not count them correctly.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- SUCCESS -->
+  <section id="success">
+    <p class="eyebrow">Success cases</p>
+    <h2>When grounding works, the pipeline works</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Question</th><th>What the model grounded</th><th>Answer</th></tr></thead>
+        <tbody>
+          <tr><td>Is there a copier in the room?</td><td>copier</td><td><span class="right-txt">yes (correct)</span></td></tr>
+          <tr><td>Is there a whiteboard at your 5 o'clock?</td><td>whiteboard</td><td><span class="right-txt">yes (correct)</span></td></tr>
+          <tr><td>Is there a backpack on the table?</td><td>backpack</td><td><span class="right-txt">yes (correct)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>
+      These show the intended behavior: the model finds the exact object the question asks about and
+      answers from it. They also confirm our analysis is not simply labeling everything a failure;
+      when grounding is right, the pipeline works.
+    </p>
+  </section>
+
+  <hr class="rule">
+
+  <!-- SPATIAL / PART 3 -->
+  <section id="spatial">
+    <p class="eyebrow">Part 3 &middot; Spatial reasoning (Option A)</p>
+    <h2>A second bottleneck: coarse spatial coordinates</h2>
+    <p>
+      Led by Simarpal Singh. Even when SceneCOT grounds the right objects, spatial-relationship
+      questions fail far more often than existence questions. We trace this to how the model
+      receives spatial information.
+    </p>
+
+    <div class="finding f-ground">
+      <h4>Finding 1 &middot; Spatial relationship is among the worst categories</h4>
+      <p style="margin:0;">
+        On the full MSQA test set (strict exact match), spatial relationship scores 21.1% (40 of
+        190), near the bottom alongside navigation (14.6%), while existence reaches 82.3%. One
+        hundred fifty of 190 spatial-relationship questions failed.
+      </p>
+    </div>
+
+    <div class="finding f-gap">
+      <h4>Finding 2 &middot; The limitation concentrates on the hardest spatial questions</h4>
+      <p style="margin:0;">
+        On a stress-test slice filtered for explicit directional language, spatial-relationship
+        accuracy drops further to 16.7% (7 of 42), below the full-set baseline. The model does worse
+        on exactly the subset where fine geometry matters most.
+      </p>
+    </div>
+
+    <details class="fold">
+      <summary><span>The mechanism: why coordinates are too coarse</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          SceneCOT does not pass raw 3D coordinates to the language model. After grounding, object
+          locations are injected as text inside a chain-of-thought tag, where each object is written
+          as egocentric x, y, z plus size, for example
+          <code>microwave: -3.0,-0.7,1.4,0.7,0.2,0.5</code>. The language model reasons about spatial
+          relationships from these strings. The problem: coordinates are formatted to one decimal
+          place, which snaps every axis to a ten-centimeter grid. Relations that depend on finer
+          offsets, like whether a cup is on a table or a lamp is in front of versus above a chair,
+          become ambiguous before the language model ever reasons about them.
+        </p>
+        <p>
+          In <code>scenecot_agent.py</code>, the function that builds the location text converts each
+          object's 3D center into the agent's egocentric frame, then formats it with one decimal on
+          every axis. This is a deterministic input-side operation, not a learned failure. Replicating
+          this path (standard library only) shows three concrete failure modes:
+        </p>
+        <ul class="clean">
+          <li><strong>Quantization collapse.</strong> Two objects five to seven centimeters apart can serialize to identical coordinate strings, so the model has zero signal they differ.</li>
+          <li><strong>Sign flips at the midline.</strong> An object four centimeters to the left can print as 0.0 while one eight centimeters right prints as -0.1, inverting the apparent left-right relation.</li>
+          <li><strong>Orientation-dependent nondeterminism.</strong> The same pair can collapse at some viewing angles and survive at others, because rotation happens before rounding, so the relation the model sees depends on camera pose even when the scene is static.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary><span>How we measured it</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>Three tools that build on each other:</p>
+        <ul class="clean">
+          <li><strong>Failure diagnosis</strong> parses the baseline evaluation log and extracts failed spatial-relationship questions with their full reasoning chain, including the location block the model reasoned from.</li>
+          <li><strong>Coordinate simulation</strong> isolates the serialization math without running the model, to show why truncation causes the failures seen in the log.</li>
+          <li><strong>Stress-test slice</strong> builds and evaluates a harder subset of MSQA questions, keeping those with explicit directional language or multi-object relative tracking, to test whether the limitation concentrates on the hardest spatial questions.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary><span>Results tables (baseline breakdown and stress slice)</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p><strong>Baseline MSQA breakdown</strong> (strict exact match):</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>QA type</th><th class="num">Correct</th><th class="num">Total</th><th class="num">EM</th></tr></thead>
+            <tbody>
+              <tr><td>existence</td><td class="num">79</td><td class="num">96</td><td class="num">82.3%</td></tr>
+              <tr class="row-cascade"><td>spatial relationship</td><td class="num">40</td><td class="num">190</td><td class="num">21.1%</td></tr>
+              <tr><td>navigation</td><td class="num">21</td><td class="num">144</td><td class="num">14.6%</td></tr>
+              <tr><td>counting</td><td class="num">56</td><td class="num">133</td><td class="num">42.1%</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p><strong>Stress-slice evaluation</strong> (114-question slice vs full baseline):</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>QA type</th><th class="num">Correct</th><th class="num">Total</th><th class="num">EM (slice)</th><th class="num">EM (baseline)</th></tr></thead>
+            <tbody>
+              <tr class="row-cascade"><td>spatial relationship</td><td class="num">7</td><td class="num">42</td><td class="num">16.7%</td><td class="num">21.1%</td></tr>
+              <tr><td>navigation</td><td class="num">7</td><td class="num">39</td><td class="num">17.9%</td><td class="num">14.6%</td></tr>
+              <tr><td>counting</td><td class="num">9</td><td class="num">24</td><td class="num">37.5%</td><td class="num">42.1%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+
+    <details class="fold">
+      <summary><span>Failure cases: right objects, wrong relation</span><span class="fold-chev">&#9654;</span></summary>
+      <div class="fold-body">
+        <p>
+          A different failure mode from the cascade: here the objects are often grounded correctly,
+          but the coarse coordinate text cannot encode the relation the benchmark asks for, so the
+          model asserts a plausible but wrong relation.
+        </p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Question (short)</th><th>Ground truth</th><th>Predicted</th></tr></thead>
+            <tbody>
+              <tr><td>Cabinet and microwave at 6 o'clock</td><td>microwave within the area of the cabinet</td><td>microwave supported by the cabinet</td></tr>
+              <tr><td>Lamp relative to the armchair</td><td>lamp in front of the armchair</td><td>lamp above the armchair</td></tr>
+              <tr><td>Bottle and soap dish</td><td>bottle lower than soap dish, within shower area</td><td>bottle supported by the soap dish</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          In each case the close coordinates collapse after rounding, so distinctions like "within"
+          versus "on", or "in front of" versus "above", are underspecified in the text the model
+          reads.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <hr class="rule">
+
+  <!-- REPRODUCE -->
+  <section id="repro">
+    <p class="eyebrow">Reproduce &amp; explore</p>
+    <h2>Code, data, and walkthrough</h2>
+    <p>
+      The full analysis code, the commented scripts, the scene-render generator, and the baseline
+      logs are all in the repository. The grounding cascade analysis runs entirely on the saved
+      predictions, so no GPU is needed to reproduce the core result. A video walkthrough demonstrates
+      the implementation end to end.
+    </p>
+    <div class="links" style="justify-content:flex-start;">
+      <a href="https://github.com/NishantTiwari00786/EE243_Scenecot_Project" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.5v-1.8c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.6.8.5 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5z"/></svg>
+        View the repository
+      </a>
+      <a href="https://www.youtube.com/watch?v=GQELvez59c0" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+        Watch the walkthrough
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/NishantTiwari00786/EE243_Scenecot_Project" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://www.youtube.com/watch?v=GQELvez59c0" target="_blank" rel="noopener">Video</a>
+    </div>
+    <p>
+      EE 243 Advanced Computer Vision &middot; UC Riverside &middot; Spring 2026<br>
+      A course project analyzing SceneCOT (ICLR 2026) for educational purposes. All rights to the
+      original SceneCOT work belong to its authors. We thank the SceneCOT authors for releasing their
+      code, weights, and data, and the UCR CSE HPC cluster for the compute used here.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
