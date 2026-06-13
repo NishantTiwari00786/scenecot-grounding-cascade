@@ -7,7 +7,7 @@
 
 Project webpage: UPDATE LINK HERE
 
-Video walkthrough: ([https://drive.google.com/file/d/1Of7TrK781tsZ0_dChAE-YpFAzCndJro9/view?usp=sharing](url))
+Video walkthrough: https://drive.google.com/file/d/1Of7TrK781tsZ0_dChAE-YpFAzCndJro9/view?usp=drive_link
 
 ---
 
