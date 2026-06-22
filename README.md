@@ -1,7 +1,9 @@
 # A Structural Limitation in SceneCOT's Grounded Reasoning
 
 **Course:** EE 243 Advanced Computer Vision, Spring 2026, UC Riverside
+
 **Team:** Nishant Tiwari, Simarpal Singh
+
 **My contribution:** Designed and implemented the Grounding Error Cascade analysis (Parts 1–2) — built the evaluation pipeline, cascade tracing scripts, qualitative 3D scene renders via Poisson surface reconstruction (Open3D), and the quantitative analysis showing how grounding failures propagate irreversibly through SceneCOT's fixed reasoning chain.
 
 **Paper studied:** SceneCOT: Eliciting Grounded Chain-of-Thought Reasoning in 3D Scenes (ICLR 2026)
