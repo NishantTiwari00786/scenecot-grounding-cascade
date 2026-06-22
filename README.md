@@ -5,7 +5,7 @@
 
 **Paper studied:** SceneCOT: Eliciting Grounded Chain-of-Thought Reasoning in 3D Scenes (ICLR 2026)
 
-Project webpage: https://nishanttiwari00786.github.io/EE243_Scenecot_Project/ 
+Project webpage: https://nishanttiwari00786.github.io/scenecot-grounding-cascade/
 
 Video walkthrough: https://www.youtube.com/watch?v=GQELvez59c0
 
