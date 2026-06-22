@@ -1,13 +1,25 @@
-# EE243 Final Project: A Structural Limitation in SceneCOT's Grounded Reasoning
+# A Structural Limitation in SceneCOT's Grounded Reasoning
 
 **Course:** EE 243 Advanced Computer Vision, Spring 2026, UC Riverside
 **Team:** Nishant Tiwari, Simarpal Singh
+**My contribution:** Designed and implemented the Grounding Error Cascade analysis (Parts 1–2) — built the evaluation pipeline, cascade tracing scripts, qualitative 3D scene renders via Poisson surface reconstruction (Open3D), and the quantitative analysis showing how grounding failures propagate irreversibly through SceneCOT's fixed reasoning chain.
 
 **Paper studied:** SceneCOT: Eliciting Grounded Chain-of-Thought Reasoning in 3D Scenes (ICLR 2026)
 
 Project webpage: https://nishanttiwari00786.github.io/scenecot-grounding-cascade/
 
 Video walkthrough: https://www.youtube.com/watch?v=GQELvez59c0
+
+## Key Findings
+
+| Finding | Result |
+|---|---|
+| **Grounding Error Cascade** | SceneCOT's 4-step chain runs sequentially with no error recovery — a single grounding failure propagates irreversibly into the final answer |
+| **Cascade is the dominant failure mode** | 83.5% of all wrong answers (counting + existence) trace back to grounding the wrong object |
+| **Existence: 100% cascade** | Every wrong existence answer was caused by a grounding error — zero reasoning failures |
+| **Inflated accuracy** | 36.4% of correct counting answers were produced without correct grounding, meaning reported accuracy overstates true scene understanding |
+| **Spatial reasoning bottleneck** | Even with correct grounding, spatial relationship accuracy drops to 21.1% on MSQA due to 10 cm coordinate quantization |
+| **Stress test (directional language)** | Spatial accuracy falls further to 16.7% when filtered for explicit directional queries |
 
 ---
 
@@ -719,7 +731,7 @@ SceneCOT evaluation on one GPU and writes the prediction files used above.
 ## Repository structure
 
 ```text
-EE243_Scenecot_Project/
+scenecot-grounding-cascade/
 ├── scenecot/                           # Original SceneCOT codebase (git submodule)
 ├── experiments/
 │   └── SceneCOT_msqa_beacon3d_test_moe/
